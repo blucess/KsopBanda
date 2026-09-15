@@ -1,0 +1,11 @@
+# Microsoft Word temporary & lock files
+~$*
+*.tmp
+
+# Logs & test artifacts
+*.log
+scratch/
+
+# OS generated files
+Thumbs.db
+.DS_Store
