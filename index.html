@@ -72,8 +72,35 @@
                 min-height: 0 !important;
                 overflow: visible !important;
             }
-            #app,
-            #app > div,
+            #app {
+                display: block !important;
+                overflow: visible !important;
+                height: auto !important;
+                min-height: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: transparent !important;
+            }
+            /* Sembunyikan SEMUA elemen UI, header, tombol, tab HP & modal saat mencetak */
+            .no-print,
+            #app .no-print,
+            #app > .no-print,
+            #mobile-tab-switcher,
+            header,
+            nav,
+            button,
+            [class*="no-print"] {
+                display: none !important;
+                visibility: hidden !important;
+                height: 0 !important;
+                min-height: 0 !important;
+                max-height: 0 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                border: 0 !important;
+                overflow: hidden !important;
+                opacity: 0 !important;
+            }
             .print-container {
                 display: block !important;
                 overflow: visible !important;
@@ -83,9 +110,6 @@
                 padding: 0 !important;
                 margin: 0 !important;
                 background: transparent !important;
-            }
-            .no-print {
-                display: none !important;
             }
             .zoom-wrapper {
                 transform: none !important;
@@ -180,7 +204,7 @@
         </header>
 
         <!-- TAB SWITCHER KHUSUS HP (Hanya Tampil di Layar Mobile < md) -->
-        <div class="no-print flex md:hidden bg-slate-900 border-b border-slate-800 p-1.5 gap-1.5 sticky top-[48px] z-30 shadow-md">
+        <div id="mobile-tab-switcher" class="no-print flex md:hidden bg-slate-900 border-b border-slate-800 p-1.5 gap-1.5 sticky top-[48px] z-30 shadow-md">
             <button @click="mobileTab = 'form'" 
                     :class="{'bg-blue-600 text-white shadow-xs font-bold': mobileTab === 'form', 'text-slate-300 hover:text-white hover:bg-slate-800 font-medium': mobileTab !== 'form'}"
                     class="flex-1 py-2 px-3 rounded-lg text-xs flex items-center justify-center gap-1.5 transition">
@@ -1367,7 +1391,11 @@
                 };
 
                 const printDoc = () => {
-                    window.print();
+                    // Jika di HP, otomatis alihkan ke tab pratinjau surat sebelum mencetak
+                    mobileTab.value = 'preview';
+                    setTimeout(() => {
+                        window.print();
+                    }, 100);
                 };
 
                 // Ekspor ke format Word (.doc) 100% Persis template.doc Asli (Struktur Tabel Word MSO, Tampilan Cetak, Pas 1 Halaman A4)
