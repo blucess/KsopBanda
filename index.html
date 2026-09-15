@@ -67,13 +67,14 @@
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 5mm 10mm 4mm 10mm;
+                margin: 4mm 10mm 3mm 10mm;
             }
             html, body {
                 background: white !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                height: 100% !important;
+                height: auto !important;
+                min-height: 0 !important;
                 overflow: visible !important;
                 -webkit-text-size-adjust: 100% !important;
                 text-size-adjust: 100% !important;
@@ -81,11 +82,16 @@
                 print-color-adjust: exact !important;
             }
             #app,
-            #app > div:not(.no-print),
+            #app *,
+            .print-container,
+            .zoom-wrapper {
+                overflow: visible !important;
+            }
+            #app,
+            #app > div,
             .print-container,
             .zoom-wrapper {
                 display: block !important;
-                overflow: visible !important;
                 height: auto !important;
                 min-height: 0 !important;
                 max-height: none !important;
@@ -93,6 +99,7 @@
                 margin: 0 !important;
                 background: transparent !important;
                 transform: none !important;
+                -webkit-transform: none !important;
                 width: 100% !important;
             }
             /* Sembunyikan SEMUA elemen UI, header, tombol, tab HP & modal saat mencetak */
@@ -127,42 +134,49 @@
                 page-break-after: avoid !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                font-size: 11pt !important;
-                line-height: 1.16 !important;
+                break-after: avoid !important;
+                font-size: 10.6pt !important;
+                line-height: 1.13 !important;
             }
             /* Jaga proporsi teks & tabel tetap elegan sesuai template resmi */
             .a4-paper table {
                 font-size: inherit !important;
-                line-height: 1.16 !important;
+                line-height: inherit !important;
+                border-collapse: collapse !important;
+                width: 100% !important;
+            }
+            .a4-paper td {
+                padding-top: 0.5px !important;
+                padding-bottom: 0.5px !important;
             }
             .a4-paper p, 
             .a4-paper div {
-                line-height: 1.16 !important;
+                line-height: inherit !important;
             }
             .doc-section {
-                margin-bottom: 7.5pt !important;
+                margin-bottom: 5.5pt !important;
             }
             .kop-divider-thick {
-                margin-top: 2px !important;
+                margin-top: 1.5px !important;
                 border-top-width: 2.25pt !important;
             }
             .kop-divider-thin {
-                margin-top: 1.5px !important;
-                margin-bottom: 5px !important;
+                margin-top: 1px !important;
+                margin-bottom: 3.5px !important;
                 border-top-width: 0.75pt !important;
             }
             .signature-section {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                margin-top: 7.5pt !important;
+                margin-top: 5pt !important;
             }
-            /* Jarak Ruang Tanda Tangan Sangat Lega & Berwibawa (~2.2 cm) Sesuai Permintaan */
+            /* Jarak Ruang Tanda Tangan Tetap Sangat Lega & Berwibawa (~1.9 cm) */
             .signature-space {
-                height: 60pt !important;
+                height: 52pt !important;
             }
             .kop-logo {
-                width: 76px !important;
-                height: 82px !important;
+                width: 70px !important;
+                height: 76px !important;
             }
         }
 
@@ -1412,16 +1426,11 @@
                 };
 
                 const printDoc = () => {
-                    // Jika di HP, otomatis alihkan ke tab pratinjau surat sebelum mencetak
+                    // Jika di HP, pastikan tab pratinjau surat aktif
                     mobileTab.value = 'preview';
-                    const prevZoom = zoomLevel.value;
-                    zoomLevel.value = 100;
                     setTimeout(() => {
                         window.print();
-                        setTimeout(() => {
-                            zoomLevel.value = prevZoom;
-                        }, 500);
-                    }, 120);
+                    }, 60);
                 };
 
                 onMounted(() => {
