@@ -164,6 +164,27 @@
                 width: 76px !important;
                 height: 82px !important;
             }
+
+            /* Penyesuaian KHUSUS jika dicetak dari HP agar pas 1 lembar (PC 100% tidak terpengaruh) */
+            body.mobile-print-fit .a4-paper {
+                font-size: 10.3pt !important;
+                line-height: 1.13 !important;
+            }
+            body.mobile-print-fit .a4-paper table,
+            body.mobile-print-fit .a4-paper p,
+            body.mobile-print-fit .a4-paper div {
+                line-height: 1.13 !important;
+            }
+            body.mobile-print-fit .doc-section {
+                margin-bottom: 5pt !important;
+            }
+            body.mobile-print-fit .signature-space {
+                height: 46pt !important;
+            }
+            body.mobile-print-fit .kop-logo {
+                width: 70px !important;
+                height: 76px !important;
+            }
         }
 
         /* Scrollbar Halus */
@@ -1414,13 +1435,18 @@
                 const printDoc = () => {
                     // Jika di HP, otomatis alihkan ke tab pratinjau surat sebelum mencetak
                     mobileTab.value = 'preview';
+                    const isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    if (isMobile) {
+                        document.body.classList.add('mobile-print-fit');
+                    }
                     const prevZoom = zoomLevel.value;
                     zoomLevel.value = 100;
                     setTimeout(() => {
                         window.print();
                         setTimeout(() => {
                             zoomLevel.value = prevZoom;
-                        }, 500);
+                            document.body.classList.remove('mobile-print-fit');
+                        }, 800);
                     }, 120);
                 };
 
