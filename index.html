@@ -58,28 +58,36 @@
             margin-bottom: 6px;
         }
 
-        /* Mode Cetak Bersih Langsung dari Browser */
+        /* Mode Cetak Bersih Langsung dari Browser (Pasti 1 Lembar Pas di HP & PC) */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 6mm 12mm 6mm 12mm;
+                margin: 4mm 10mm 4mm 10mm;
             }
             html, body {
                 background: white !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                height: auto !important;
-                min-height: 0 !important;
+                height: 100% !important;
                 overflow: visible !important;
+                -webkit-text-size-adjust: 100% !important;
+                text-size-adjust: 100% !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
-            #app {
+            #app,
+            .print-container,
+            .zoom-wrapper {
                 display: block !important;
                 overflow: visible !important;
                 height: auto !important;
                 min-height: 0 !important;
+                max-height: none !important;
                 padding: 0 !important;
                 margin: 0 !important;
                 background: transparent !important;
+                transform: none !important;
+                width: 100% !important;
             }
             /* Sembunyikan SEMUA elemen UI, header, tombol, tab HP & modal saat mencetak */
             .no-print,
@@ -101,37 +109,59 @@
                 overflow: hidden !important;
                 opacity: 0 !important;
             }
-            .print-container {
-                display: block !important;
-                overflow: visible !important;
-                height: auto !important;
-                min-height: 0 !important;
-                max-height: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                background: transparent !important;
-            }
-            .zoom-wrapper {
-                transform: none !important;
-                display: block !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
             .a4-paper {
                 box-shadow: none !important;
-                margin: 0 !important;
+                margin: 0 auto !important;
                 padding: 0 !important;
                 width: 100% !important;
                 max-width: 100% !important;
-                min-height: auto !important;
+                min-height: 0 !important;
                 height: auto !important;
                 overflow: visible !important;
                 page-break-after: avoid !important;
                 page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                font-size: 10.2pt !important;
+                line-height: 1.13 !important;
+            }
+            /* Kompak & Rapi Khusus Cetak agar Pasti 1 Lembar di HP & Komputer */
+            .a4-paper table {
+                font-size: inherit !important;
+                line-height: 1.13 !important;
+            }
+            .a4-paper p, 
+            .a4-paper div {
+                line-height: 1.13 !important;
+            }
+            .a4-paper .mb-1\.5,
+            .a4-paper .mb-1,
+            .a4-paper .mb-2 {
+                margin-bottom: 1.5pt !important;
+            }
+            .a4-paper .mt-1,
+            .a4-paper .mt-1\.5 {
+                margin-top: 1.5pt !important;
+            }
+            .kop-divider-thick {
+                margin-top: 1.5px !important;
+                border-top-width: 2pt !important;
+            }
+            .kop-divider-thin {
+                margin-top: 1px !important;
+                margin-bottom: 3px !important;
+                border-top-width: 0.75pt !important;
             }
             .signature-section {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
+                margin-top: 2pt !important;
+            }
+            .signature-space {
+                height: 38pt !important;
+            }
+            .kop-logo {
+                width: 70px !important;
+                height: 76px !important;
             }
         }
 
@@ -517,7 +547,7 @@
                             <div class="flex items-center mb-0.5">
                                 <!-- Logo Kementerian Perhubungan di Kiri (Lebar 82px) -->
                                 <div class="w-[82px] shrink-0 flex items-center justify-start">
-                                    <img :src="kemenhubLogoBase64" alt="Logo Kemenhub" class="w-[78px] h-[84px] object-contain">
+                                    <img :src="kemenhubLogoBase64" alt="Logo Kemenhub" class="w-[78px] h-[84px] object-contain kop-logo">
                                 </div>
 
                                 <!-- Teks Instansi Kop Surat (Tepat di Tengah Halaman / Center-Aligned) -->
@@ -760,7 +790,7 @@
                                 </div>
 
                                 <!-- Ruang Tanda Tangan Sangat Cukup (Persis 6 Empty Lines di Template Asli = ~68pt / 2.5 cm) -->
-                                <div class="h-[56pt]"></div>
+                                <div class="h-[44pt] signature-space"></div>
 
                                 <div class="text-center">
                                     <div class="font-bold underline uppercase text-[12pt]">{{ form.kepalaKantor }}</div>
