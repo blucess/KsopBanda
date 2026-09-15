@@ -58,11 +58,16 @@
             margin-bottom: 6px;
         }
 
+        /* Jarak Antar Paragraf Proporsional & Elegan Sesuai Format Resmi (Ada Space Jelas Antar Paragraf) */
+        .doc-section {
+            margin-bottom: 8pt;
+        }
+
         /* Mode Cetak Bersih Langsung dari Browser (Pasti 1 Lembar Pas di HP & PC) */
         @media print {
             @page {
                 size: A4 portrait;
-                margin: 4mm 10mm 4mm 10mm;
+                margin: 5mm 10mm 4mm 10mm;
             }
             html, body {
                 background: white !important;
@@ -76,6 +81,7 @@
                 print-color-adjust: exact !important;
             }
             #app,
+            #app > div:not(.no-print),
             .print-container,
             .zoom-wrapper {
                 display: block !important;
@@ -121,47 +127,42 @@
                 page-break-after: avoid !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                font-size: 10.2pt !important;
-                line-height: 1.13 !important;
+                font-size: 11pt !important;
+                line-height: 1.16 !important;
             }
-            /* Kompak & Rapi Khusus Cetak agar Pasti 1 Lembar di HP & Komputer */
+            /* Jaga proporsi teks & tabel tetap elegan sesuai template resmi */
             .a4-paper table {
                 font-size: inherit !important;
-                line-height: 1.13 !important;
+                line-height: 1.16 !important;
             }
             .a4-paper p, 
             .a4-paper div {
-                line-height: 1.13 !important;
+                line-height: 1.16 !important;
             }
-            .a4-paper .mb-1\.5,
-            .a4-paper .mb-1,
-            .a4-paper .mb-2 {
-                margin-bottom: 1.5pt !important;
-            }
-            .a4-paper .mt-1,
-            .a4-paper .mt-1\.5 {
-                margin-top: 1.5pt !important;
+            .doc-section {
+                margin-bottom: 7.5pt !important;
             }
             .kop-divider-thick {
-                margin-top: 1.5px !important;
-                border-top-width: 2pt !important;
+                margin-top: 2px !important;
+                border-top-width: 2.25pt !important;
             }
             .kop-divider-thin {
-                margin-top: 1px !important;
-                margin-bottom: 3px !important;
+                margin-top: 1.5px !important;
+                margin-bottom: 5px !important;
                 border-top-width: 0.75pt !important;
             }
             .signature-section {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                margin-top: 2pt !important;
+                margin-top: 7.5pt !important;
             }
+            /* Jarak Ruang Tanda Tangan Sangat Lega & Berwibawa (~2.2 cm) Sesuai Permintaan */
             .signature-space {
-                height: 38pt !important;
+                height: 60pt !important;
             }
             .kop-logo {
-                width: 70px !important;
-                height: 76px !important;
+                width: 76px !important;
+                height: 82px !important;
             }
         }
 
@@ -592,60 +593,60 @@
                         </div>
 
                         <!-- JUDUL SURAT & NOMOR RESMI (NOMOR MENGGUNAKAN FONT COURIER NEW PERSIS TEMPLATE.DOC) -->
-                        <div class="text-center mt-1 mb-2">
+                        <div class="text-center mt-2 doc-section">
                             <div class="doc-font-serif font-bold text-[12pt] underline uppercase">
                                 PERSETUJUAN BONGKAR/ MUAT BARANG  BERBAHAYA
                             </div>
-                            <div class="mt-0.5 text-[11.5pt]">
-                                <span class="doc-font-serif">Nomor  :  </span><b class="doc-font-mono font-bold text-[11.5pt] tracking-normal" style="font-family: 'Courier New', 'Courier Prime', Courier, monospace; font-weight: bold;">{{ form.noSurat }}</b>
+                            <div class="mt-0.5 text-[12pt]">
+                                <span class="doc-font-serif">Nomor  :  </span><b class="doc-font-mono font-bold text-[12pt] tracking-normal" style="font-family: 'Courier New', 'Courier Prime', Courier, monospace; font-weight: bold;">{{ form.noSurat }}</b>
                             </div>
                         </div>
 
                         <!-- DASAR HUKUM (EXACT TEMPLATE: Times New Roman 11pt) -->
-                        <div class="text-justify mb-1.5 text-[11pt] leading-[1.18]">
+                        <div class="text-justify doc-section text-[11pt] leading-[1.18]">
                             <table class="w-full border-collapse">
                                 <tr>
                                     <td class="w-[110px] align-top">Dasar Hukum</td>
                                     <td class="w-[14px] align-top text-center">:</td>
                                     <td class="align-top">
                                         <table class="w-full border-collapse">
-                                            <tr>
-                                                <td class="w-[20px] align-top">1.</td>
-                                                <td class="align-top text-justify">Undang – undang Nomor 17 Tahun 2008 Tentang Pelayaran</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="align-top">2.</td>
-                                                <td class="align-top text-justify">Peratutan Bandar 1925</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="align-top">3.</td>
-                                                <td class="align-top text-justify">Kepres No.65 Tahun 1980 Tentang Ratifikasi</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="align-top">4.</td>
-                                                <td class="align-top text-justify">Kepres No. 46 Tahun 1986 Tentang Ratifikasi Marpol</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="align-top">5.</td>
-                                                <td class="align-top text-justify">Permenhub No. KM 17 Tahun 2000 Tentang Pedoman Penanganan Barang/Berbahaya</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="align-top">6.</td>
-                                                <td class="align-top text-justify">Keputusan Direktorat Jenderal Perhubungan Laut No.UM.48/4/2-01 Tentang Pedoman Pelaksanaan Penanganan Bahan Berbahaya Seluruh Indonesia</td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
+                                             <tr>
+                                                 <td class="w-[20px] align-top">1.</td>
+                                                 <td class="align-top text-justify">Undang – undang Nomor 17 Tahun 2008 Tentang Pelayaran</td>
+                                             </tr>
+                                             <tr>
+                                                 <td class="align-top">2.</td>
+                                                 <td class="align-top text-justify">Peratutan Bandar 1925</td>
+                                             </tr>
+                                             <tr>
+                                                 <td class="align-top">3.</td>
+                                                 <td class="align-top text-justify">Kepres No.65 Tahun 1980 Tentang Ratifikasi</td>
+                                             </tr>
+                                             <tr>
+                                                 <td class="align-top">4.</td>
+                                                 <td class="align-top text-justify">Kepres No. 46 Tahun 1986 Tentang Ratifikasi Marpol</td>
+                                             </tr>
+                                             <tr>
+                                                 <td class="align-top">5.</td>
+                                                 <td class="align-top text-justify">Permenhub No. KM 17 Tahun 2000 Tentang Pedoman Penanganan Barang/Berbahaya</td>
+                                             </tr>
+                                             <tr>
+                                                 <td class="align-top">6.</td>
+                                                 <td class="align-top text-justify">Keputusan Direktorat Jenderal Perhubungan Laut No.UM.48/4/2-01 Tentang Pedoman Pelaksanaan Penanganan Bahan Berbahaya Seluruh Indonesia</td>
+                                             </tr>
+                                         </table>
+                                     </td>
+                                 </tr>
+                             </table>
+                         </div>
 
                         <!-- PARAGRAF PEMBUKA PEJABAT (EXACT TEMPLATE: Times New Roman 11pt) -->
-                        <div class="text-justify mb-1.5 text-[11pt] leading-[1.18]">
+                        <div class="text-justify doc-section text-[11pt] leading-[1.18]">
                             Yang bertanda tangan di bawah ini Kepala Kantor Kesyahbandaran Dan Otoritas Pelabuhan Kelas IV Banda Naira.
                         </div>
 
                         <!-- DASAR PERMOHONAN AGEN (EXACT TEMPLATE: Times New Roman 11pt) -->
-                        <div class="text-justify mb-1.5 text-[11pt] leading-[1.18]">
+                        <div class="text-justify doc-section text-[11pt] leading-[1.18]">
                             <table class="w-full border-collapse">
                                 <tr>
                                     <td class="w-[245px] align-top">Berdasarkan  Surat  Permohonan  dari</td>
@@ -666,13 +667,13 @@
                         </div>
 
                         <!-- DIKTUM PERTAMA (EXACT TEMPLATE: Times New Roman 11pt) -->
-                        <div class="text-justify mb-1.5 text-[11pt] leading-[1.18]">
+                        <div class="text-justify doc-section text-[11pt] leading-[1.18]">
                             <table class="w-full border-collapse">
                                 <tr>
                                     <td class="w-[95px] align-top">Pertama</td>
                                     <td class="w-[14px] align-top text-center">:</td>
                                     <td class="align-top">
-                                        <p class="mb-0.5">Dengan ini Memberikan persetujuan kepada kapal tersebut di bawah ini :</p>
+                                        <p class="mb-1">Dengan ini Memberikan persetujuan kepada kapal tersebut di bawah ini :</p>
                                         <table class="w-full border-collapse">
                                             <tr>
                                                 <td class="w-[135px] align-top">Nama Kapal</td>
@@ -716,13 +717,13 @@
                         </div>
 
                         <!-- DIKTUM KEDUA (EXACT TEMPLATE: Times New Roman 11pt) -->
-                        <div class="text-justify mb-1.5 text-[11pt] leading-[1.18]">
+                        <div class="text-justify doc-section text-[11pt] leading-[1.18]">
                             <table class="w-full border-collapse">
                                 <tr>
                                     <td class="w-[95px] align-top">Kedua</td>
                                     <td class="w-[14px] align-top text-center">:</td>
                                     <td class="align-top">
-                                        <p class="mb-0.5">Persetujuan ini diberikan untuk maksud dan tujuan diatas dengan ketentuan sebagai berikut</p>
+                                        <p class="mb-1">Persetujuan ini diberikan untuk maksud dan tujuan diatas dengan ketentuan sebagai berikut</p>
                                         <table class="w-full border-collapse">
                                             <tr>
                                                 <td class="w-[20px] align-top">1.</td>
@@ -757,7 +758,7 @@
                                                 <td class="align-top text-justify">Mematuhi semua  peraturan dan ketentuan yang berlaku di wilayah kerja Kantor  Kesyahbandaran  dan  Otoirats  Pelabuhan  Kelas IV Banda Naira</td>
                                             </tr>
                                         </table>
-                                        <p class="mt-1">
+                                        <p class="mt-2">
                                             Persetujuan ini mulai tanggal <b><i>{{ form.tglMulai }}</i></b> sampai dengan selesai kegiatan.
                                         </p>
                                     </td>
@@ -766,7 +767,7 @@
                         </div>
 
                         <!-- BAGIAN TANDA TANGAN (LEGA UNTUK TANDA TANGAN & STEMPEL CAP RESMI) -->
-                        <div class="mt-1.5 flex justify-end text-[11pt] signature-section">
+                        <div class="mt-2 flex justify-end text-[11pt] signature-section">
                             <div class="w-[330px]">
                                 <table class="w-full border-collapse mb-1">
                                     <tr>
@@ -783,13 +784,13 @@
                                     </tr>
                                 </table>
 
-                                <div class="text-center mt-1">
+                                <div class="text-center mt-1.5">
                                     <div class="text-[11pt] leading-tight">KEPALA KANTOR KESYAHBANDARAN DAN</div>
                                     <div class="text-[11pt] leading-tight">OTORITAS PELABUHAN BANDA NAIRA</div>
                                 </div>
 
                                 <!-- Ruang Tanda Tangan Sangat Cukup (Persis 6 Empty Lines di Template Asli = ~68pt / 2.5 cm) -->
-                                <div class="h-[44pt] signature-space"></div>
+                                <div class="h-[62pt] signature-space"></div>
 
                                 <div class="text-center">
                                     <div class="font-bold underline uppercase text-[12pt]">{{ form.kepalaKantor }}</div>
@@ -1413,9 +1414,14 @@
                 const printDoc = () => {
                     // Jika di HP, otomatis alihkan ke tab pratinjau surat sebelum mencetak
                     mobileTab.value = 'preview';
+                    const prevZoom = zoomLevel.value;
+                    zoomLevel.value = 100;
                     setTimeout(() => {
                         window.print();
-                    }, 100);
+                        setTimeout(() => {
+                            zoomLevel.value = prevZoom;
+                        }, 500);
+                    }, 120);
                 };
 
                 onMounted(() => {
