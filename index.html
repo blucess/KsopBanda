@@ -1104,6 +1104,52 @@
                 const tahunSurat = ref('2026');
                 const zoomLevel = ref(100);
 
+                // --- DUKUNGAN RESPONSIVE HP & MODAL AKSES ---
+                const mobileTab = ref('form');
+                const showMobileAccessModal = ref(false);
+                const copiedMobileUrl = ref(false);
+                const mobileUrl = ref(typeof window !== 'undefined' ? window.location.href : '');
+
+                const fitToScreen = () => {
+                    if (typeof window !== 'undefined') {
+                        const screenW = window.innerWidth;
+                        if (screenW < 768) {
+                            const availableW = screenW - 24;
+                            const scale = Math.floor((availableW / 794) * 100);
+                            zoomLevel.value = Math.max(35, Math.min(100, scale));
+                        } else {
+                            zoomLevel.value = 100;
+                        }
+                    }
+                };
+
+                const switchMobileTab = (tab) => {
+                    mobileTab.value = tab;
+                    if (tab === 'preview') {
+                        setTimeout(() => {
+                            fitToScreen();
+                        }, 60);
+                    }
+                };
+
+                const openMobileModal = () => {
+                    if (typeof window !== 'undefined') {
+                        mobileUrl.value = window.location.href;
+                    }
+                    showMobileAccessModal.value = true;
+                };
+
+                const copyMobileUrl = () => {
+                    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                        navigator.clipboard.writeText(mobileUrl.value).then(() => {
+                            copiedMobileUrl.value = true;
+                            setTimeout(() => {
+                                copiedMobileUrl.value = false;
+                            }, 2000);
+                        }).catch(() => {});
+                    }
+                };
+
                 const selectedPresetIndex = ref(0);
                 const showHistoryModal = ref(false);
                 const showAddShipModal = ref(false);
@@ -1603,6 +1649,13 @@ xmlns="http://www.w3.org/TR/REC-html40">
                 };
 
                 onMounted(() => {
+                    if (typeof window !== 'undefined') {
+                        mobileUrl.value = window.location.href;
+                        if (window.innerWidth < 768) {
+                            fitToScreen();
+                        }
+                    }
+
                     // Load Presets Kapal dari LocalStorage
                     const stored = localStorage.getItem('ksop_ship_presets');
                     if (stored) {
