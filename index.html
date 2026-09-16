@@ -1834,7 +1834,17 @@ function createJsonResponse(data) {
                             method: 'GET',
                             redirect: 'follow'
                         });
-                        const data = await res.json();
+                        const resText = await res.text();
+                        let data;
+                        try {
+                            data = JSON.parse(resText);
+                        } catch (parseErr) {
+                            if (resText.includes('accounts.google.com') || resText.includes('ServiceLogin') || resText.includes('Sign in') || resText.includes('<title>Google Accounts</title>')) {
+                                throw new Error('Akses Google Apps Script terkunci (meminta login Google). Pastikan saat Deploy di Google Script, pilihan "Who has access" disetel ke "Anyone" (Siapa saja), bukan "Only myself".');
+                            } else {
+                                throw new Error('Google Script mengembalikan halaman web bukan data JSON. Pastikan Web App URL berakhiran /exec dan "Who has access" = Anyone.');
+                            }
+                        }
                         if (data && data.status === 'ok') {
                             alert('✓ KONEKSI BERHASIL!\n\nLayanan Google Apps Script merespons:\n"' + data.message + '"');
                         } else {
@@ -1876,8 +1886,14 @@ function createJsonResponse(data) {
                 };
 
                 const archiveToGoogleDrive = async () => {
-                    const url = gdriveWebhookUrl.value ? gdriveWebhookUrl.value.trim() : '';
+                    let url = gdriveWebhookUrl.value ? gdriveWebhookUrl.value.trim().replace(/['"]/g, '') : '';
                     if (!url) return;
+
+                    if (url.includes('/edit') || url.includes('/home/projects')) {
+                        gdriveStatus.value = 'error';
+                        gdriveMessage.value = 'Gagal arsip: URL yang dimasukkan adalah link editor. Buka Deploy > Manage deployments, lalu salin Web App URL yang berakhiran /exec.';
+                        return;
+                    }
 
                     gdriveStatus.value = 'saving';
                     gdriveMessage.value = 'Menyiapkan berkas PDF surat...';
@@ -1964,7 +1980,20 @@ function createJsonResponse(data) {
                             }
                         });
 
-                        const result = await response.json();
+                        const responseText = await response.text();
+                        let result;
+                        try {
+                            result = JSON.parse(responseText);
+                        } catch (parseErr) {
+                            if (responseText.includes('accounts.google.com') || responseText.includes('ServiceLogin') || responseText.includes('Sign in') || responseText.includes('<title>Google Accounts</title>')) {
+                                throw new Error('Akses Google Script tertolak (meminta login akun). Pada saat Deploy di script.google.com, pastikan "Who has access" dipilih "Anyone" (Siapa saja), bukan "Only myself".');
+                            } else if (responseText.includes('Exception:') || responseText.includes('errorMessage')) {
+                                const cleanMsg = responseText.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                                throw new Error('Google Script membalas kesalahan: ' + cleanMsg.substring(0, 160));
+                            } else {
+                                throw new Error('Google Script membalas dengan halaman web (bukan JSON). Pastikan Web App URL berakhiran /exec dan hak akses = Anyone.');
+                            }
+                        }
 
                         if (result.status === 'success') {
                             gdriveStatus.value = 'success';
