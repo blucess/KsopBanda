@@ -1,23 +1,20 @@
 /**
- * GOOGLE APPS SCRIPT: ARSIP SURAT OTOMATIS KSOP KELAS IV BANDA NAIRA
+ * GOOGLE APPS SCRIPT: ARSIP SURAT & DATABASE RIWAYAT ONLINE KSOP KELAS IV BANDA NAIRA
  * 
- * Skrip ini menerima file PDF surat persetujuan dari aplikasi web dan
- * menyimpannya secara rapi ke Google Drive dengan struktur folder bertingkat:
- * [Folder Utama] -> [Folder Tahun] -> [Folder Bulan] -> [File PDF]
+ * Fitur:
+ * 1. Menerima file PDF surat dan menyimpannya otomatis ke Google Drive per Tahun & Bulan.
+ * 2. Mencatat setiap surat ke Google Spreadsheet otomatis sebagai Buku Register / Database Online.
+ * 3. Menyediakan sinkronisasi riwayat surat secara real-time ke semua perangkat (PC, Laptop, HP).
  * 
- * PANDUAN DEPLOY SEBAGAI WEB APP:
- * 1. Buka https://script.google.com dengan akun Google/Gmail kantor Anda.
- * 2. Buat proyek baru: Klik "+ Project Baru".
- * 3. Hapus kode bawaan, lalu paste seluruh isi kode ini ke editor.
- * 4. Klik tombol "Deploy" (di pojok kanan atas) -> Pilih "New deployment".
- * 5. Klik ikon gerigi (Select type) -> Pilih "Web app".
- * 6. Isi konfigurasi:
- *    - Description: "Arsip Surat KSOP"
- *    - Execute as: "Me" (akun Google Anda)
- *    - Who has access: "Anyone" (Siapa saja - agar aplikasi web bisa kirim data tanpa login)
- * 7. Klik "Deploy".
- * 8. Berikan izin akses (Authorize Access) -> Pilih akun Anda -> Advanced -> Go to ... (unsafe) -> Allow.
- * 9. Salin "Web App URL" (akhiran /exec) dan tempelkan ke Pengaturan Google Drive di aplikasi web.
+ * PANDUAN PEMBARUAN SKRIP DI script.google.com:
+ * 1. Buka proyek skrip Anda di https://script.google.com.
+ * 2. Hapus seluruh kode lama, lalu tempelkan (paste) seluruh kode ini.
+ * 3. Klik ikon Disket (Save).
+ * 4. Klik tombol biru "Deploy" (di kanan atas) -> Pilih "Manage deployments".
+ * 5. Klik ikon Pensil (Edit) pada deployment aktif.
+ * 6. Pada kolom "Version", pilih "New version".
+ * 7. Pastikan "Who has access" tetap terpilih "Anyone" (Siapa saja).
+ * 8. Klik "Deploy".
  */
 
 function doPost(e) {
@@ -30,11 +27,35 @@ function doPost(e) {
     }
 
     var requestData = JSON.parse(e.postData.contents);
+    var action = requestData.action || "upload_pdf";
+    var rootFolderName = requestData.rootFolder || "Arsip Surat KSOP Banda Naira";
+
+    // AKSI 1: Simpan riwayat ke Google Spreadsheet tanpa upload PDF
+    if (action === "save_history") {
+      var rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), rootFolderName);
+      var recordId = logToSpreadsheet(rootFolder, requestData, requestData.fileUrl || "-");
+      return createJsonResponse({
+        status: "success",
+        message: "Data surat berhasil dicatat ke Database Riwayat Cloud (Google Sheets)!",
+        id: recordId
+      });
+    }
+
+    // AKSI 2: Hapus riwayat dari Google Spreadsheet
+    if (action === "delete_history") {
+      var rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), rootFolderName);
+      var isDeleted = deleteFromSpreadsheet(rootFolder, requestData.id);
+      return createJsonResponse({
+        status: isDeleted ? "success" : "not_found",
+        message: isDeleted ? "Riwayat berhasil dihapus dari Cloud." : "Data tidak ditemukan."
+      });
+    }
+
+    // AKSI 3: Upload PDF ke Google Drive + Catat otomatis ke Database Spreadsheet
     var base64Data = requestData.fileData;
     var fileName = requestData.fileName || ("Surat_Persetujuan_" + new Date().getTime() + ".pdf");
     var yearName = String(requestData.year || new Date().getFullYear());
     var monthName = String(requestData.month || ("Bulan " + (new Date().getMonth() + 1)));
-    var rootFolderName = requestData.rootFolder || "Arsip Surat KSOP Banda Naira";
 
     if (!base64Data) {
       return createJsonResponse({
@@ -69,16 +90,21 @@ function doPost(e) {
 
     // 4. Buat dan simpan file PDF ke dalam Folder Bulan
     var savedFile = monthFolder.createFile(pdfBlob);
+    var fileUrl = savedFile.getUrl();
+
+    // 5. Otomatis catat ke Database Google Spreadsheet Riwayat Surat
+    var logId = logToSpreadsheet(rootFolder, requestData, fileUrl);
 
     return createJsonResponse({
       status: "success",
-      message: "File berhasil diarsipkan ke Google Drive!",
+      message: "File berhasil diarsipkan ke Google Drive & dicatat ke Database Riwayat!",
       fileName: fileName,
-      fileUrl: savedFile.getUrl(),
+      fileUrl: fileUrl,
       fileId: savedFile.getId(),
       folderPath: rootFolderName + " > " + yearName + " > " + monthName,
       year: yearName,
-      month: monthName
+      month: monthName,
+      historyId: logId
     });
 
   } catch (err) {
@@ -89,13 +115,191 @@ function doPost(e) {
   }
 }
 
-// Endpoint GET untuk uji koneksi dari aplikasi web
+// Endpoint GET: Uji koneksi atau ambil daftar riwayat dari Spreadsheet
 function doGet(e) {
-  return createJsonResponse({
-    status: "ok",
-    message: "Layanan Google Apps Script KSOP Banda Naira aktif dan siap digunakan!",
-    timestamp: new Date().toISOString()
-  });
+  try {
+    var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : "";
+    var rootFolderName = (e && e.parameter && e.parameter.rootFolder) ? e.parameter.rootFolder : "Arsip Surat KSOP Banda Naira";
+
+    if (action === "get_history") {
+      var rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), rootFolderName);
+      var historyData = getHistoryFromSpreadsheet(rootFolder, 60);
+      return createJsonResponse({
+        status: "success",
+        data: historyData
+      });
+    }
+
+    // Default: respon uji koneksi
+    return createJsonResponse({
+      status: "ok",
+      message: "Layanan Google Apps Script & Database Riwayat KSOP Banda Naira aktif dan siap digunakan!",
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    return createJsonResponse({
+      status: "error",
+      message: "Terjadi kesalahan pada server Google Script: " + err.toString()
+    });
+  }
+}
+
+// Dapatkan atau buat Google Spreadsheet Database di dalam folder arsip
+function getOrCreateHistorySheet(rootFolder) {
+  var fileName = "Database Riwayat Surat KSOP Banda Naira";
+  var files = rootFolder.getFilesByName(fileName);
+  var spreadsheet;
+
+  if (files.hasNext()) {
+    var file = files.next();
+    spreadsheet = SpreadsheetApp.openById(file.getId());
+  } else {
+    spreadsheet = SpreadsheetApp.create(fileName);
+    var driveFile = DriveApp.getFileById(spreadsheet.getId());
+    rootFolder.addFile(driveFile);
+    DriveApp.getRootFolder().removeFile(driveFile);
+  }
+
+  var sheet = spreadsheet.getActiveSheet();
+  sheet.setName("Riwayat Surat");
+
+  // Jika masih baru, buat header tabel dengan gaya resmi KSOP
+  if (sheet.getLastRow() === 0) {
+    var headers = [
+      "ID",
+      "Waktu Dibuat",
+      "Nomor Surat",
+      "Nama Kapal",
+      "Jenis Kapal",
+      "GT",
+      "Nahkoda",
+      "Agen / Pemilik",
+      "Keperluan / Rincian",
+      "Pejabat",
+      "NIP Pejabat",
+      "Tanggal Surat",
+      "Link PDF Google Drive",
+      "Data JSON Lengkap"
+    ];
+    sheet.appendRow(headers);
+    var headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setFontWeight("bold");
+    headerRange.setBackground("#1e3a8a"); // Navy Blue KSOP
+    headerRange.setFontColor("#ffffff");
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+// Catat data surat ke baris baru di Spreadsheet
+function logToSpreadsheet(rootFolder, data, fileUrl) {
+  try {
+    var sheet = getOrCreateHistorySheet(rootFolder);
+    var formData = data.formData || data.form || {};
+    var id = "KSOP-" + new Date().getTime();
+    var now = new Date();
+    var dateStr = Utilities.formatDate(now, "Asia/Jayapura", "dd MMM yyyy HH:mm:ss");
+
+    var row = [
+      id,
+      dateStr,
+      formData.noSurat || data.fileName || "-",
+      formData.namaKapal || "-",
+      formData.jenisKapal || "-",
+      formData.gt || "-",
+      formData.nahkoda || "-",
+      formData.agenKapal || "-",
+      formData.rincian || "-",
+      formData.namaPejabat || "-",
+      formData.nipPejabat || "-",
+      formData.tanggalSurat || "-",
+      fileUrl || "-",
+      JSON.stringify(formData)
+    ];
+
+    sheet.appendRow(row);
+    return id;
+  } catch (err) {
+    Logger.log("Error logToSpreadsheet: " + err.toString());
+    return null;
+  }
+}
+
+// Ambil daftar riwayat dari Spreadsheet (paling baru di atas)
+function getHistoryFromSpreadsheet(rootFolder, limit) {
+  try {
+    var sheet = getOrCreateHistorySheet(rootFolder);
+    var lastRow = sheet.getLastRow();
+    if (lastRow <= 1) {
+      return [];
+    }
+
+    var maxRecords = limit || 60;
+    var startRow = Math.max(2, lastRow - maxRecords + 1);
+    var numRows = lastRow - startRow + 1;
+    var values = sheet.getRange(startRow, 1, numRows, 14).getValues();
+
+    var results = [];
+    for (var i = values.length - 1; i >= 0; i--) {
+      var r = values[i];
+      var parsedForm = {};
+      try {
+        parsedForm = r[13] ? JSON.parse(r[13]) : {};
+      } catch (ep) {
+        parsedForm = {
+          noSurat: r[2],
+          namaKapal: r[3],
+          jenisKapal: r[4],
+          gt: r[5],
+          nahkoda: r[6],
+          agenKapal: r[7],
+          rincian: r[8],
+          namaPejabat: r[9],
+          nipPejabat: r[10],
+          tanggalSurat: r[11]
+        };
+      }
+
+      results.push({
+        id: r[0],
+        savedAt: r[1],
+        noSurat: r[2],
+        namaKapal: r[3],
+        agenKapal: r[7],
+        rincian: r[8],
+        fileUrl: (r[12] && r[12] !== "-") ? r[12] : null,
+        form: parsedForm,
+        source: "cloud"
+      });
+    }
+
+    return results;
+  } catch (err) {
+    Logger.log("Error getHistoryFromSpreadsheet: " + err.toString());
+    return [];
+  }
+}
+
+// Hapus baris riwayat berdasarkan ID
+function deleteFromSpreadsheet(rootFolder, id) {
+  try {
+    if (!id) return false;
+    var sheet = getOrCreateHistorySheet(rootFolder);
+    var lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return false;
+
+    var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < ids.length; i++) {
+      if (ids[i][0] === id) {
+        sheet.deleteRow(i + 2);
+        return true;
+      }
+    }
+    return false;
+  } catch (err) {
+    Logger.log("Error deleteFromSpreadsheet: " + err.toString());
+    return false;
+  }
 }
 
 // Fungsi bantu mencari atau membuat folder jika belum ada

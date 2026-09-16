@@ -259,9 +259,10 @@
                     <span class="sm:hidden">HP</span>
                 </button>
 
-                <button @click="showHistoryModal = true" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-semibold border border-slate-700 transition inline-flex items-center gap-1">
+                <button @click="openHistoryModal" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-semibold border border-slate-700 transition inline-flex items-center gap-1.5" title="Riwayat Surat (Cloud Sheets & Lokal)">
                     <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span>Riwayat ({{ historyList.length }})</span>
+                    <span>Riwayat ({{ totalHistoryCount }})</span>
+                    <span v-if="gdriveWebhookUrl" class="w-1.5 h-1.5 rounded-full bg-sky-400" title="Database Cloud Terhubung"></span>
                 </button>
 
 
@@ -1115,54 +1116,128 @@
             </div>
         </div>
 
-        <!-- MODAL RIWAYAT SURAT -->
+        <!-- MODAL RIWAYAT SURAT (DATABASE ONLINE GOOGLE SHEETS & LOKAL) -->
         <div v-if="showHistoryModal" class="no-print fixed inset-0 bg-black/60 backdrop-blur-2xs z-50 flex items-center justify-center p-4">
-            <div class="bg-white rounded-2xl max-w-xl w-full max-h-[85vh] flex flex-col shadow-2xl border border-slate-200">
-                <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-2xl">
-                    <div>
-                        <h3 class="font-bold text-slate-800 text-sm">Riwayat Surat Persetujuan Tersimpan</h3>
-                        <p class="text-[11px] text-slate-500">Daftar surat yang pernah Anda simpan di perangkat ini</p>
+            <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[88vh] flex flex-col shadow-2xl border border-slate-200">
+                <!-- Header Modal -->
+                <div class="p-4 border-b border-slate-200 flex justify-between items-center bg-gradient-to-r from-blue-50/90 to-indigo-50/90 rounded-t-2xl">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-slate-800 text-sm">Riwayat Surat Persetujuan</h3>
+                                <span v-if="gdriveWebhookUrl" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Cloud Google Sheets
+                                </span>
+                            </div>
+                            <p class="text-[11px] text-slate-500">Database surat otomatis tersinkron ke Google Sheets & perangkat Anda</p>
+                        </div>
                     </div>
-                    <button @click="showHistoryModal = false" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button v-if="gdriveWebhookUrl" @click="fetchCloudHistory" :disabled="loadingCloudHistory" type="button" class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition">
+                            <svg :class="{'animate-spin text-blue-600': loadingCloudHistory}" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                            <span>{{ loadingCloudHistory ? 'Menyinkronkan...' : 'Segarkan Cloud' }}</span>
+                        </button>
+                        <button @click="showHistoryModal = false" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-200">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="flex-1 overflow-y-auto p-4 space-y-2">
-                    <div v-if="historyList.length === 0" class="text-center py-8 text-slate-400 text-xs">
-                        Belum ada riwayat surat yang disimpan.
+                <!-- Toolbar Pencarian & Filter Tab -->
+                <div class="px-4 py-2.5 border-b border-slate-200 bg-slate-50/80 flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                    <!-- Tab Filter -->
+                    <div class="flex items-center gap-1 bg-slate-200/80 p-1 rounded-xl w-full sm:w-auto">
+                        <button @click="activeHistoryTab = 'all'" :class="{'bg-white text-slate-900 font-bold shadow-2xs': activeHistoryTab === 'all', 'text-slate-600 hover:text-slate-900': activeHistoryTab !== 'all'}" class="px-3 py-1 rounded-lg text-xs transition">
+                            Semua ({{ mergedHistoryList.length }})
+                        </button>
+                        <button v-if="gdriveWebhookUrl" @click="activeHistoryTab = 'cloud'" :class="{'bg-white text-blue-700 font-bold shadow-2xs': activeHistoryTab === 'cloud', 'text-slate-600 hover:text-slate-900': activeHistoryTab !== 'cloud'}" class="px-3 py-1 rounded-lg text-xs transition inline-flex items-center gap-1">
+                            <span>☁️ Cloud</span>
+                            <span class="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.2 rounded-full font-bold">{{ cloudHistoryList.length }}</span>
+                        </button>
+                        <button @click="activeHistoryTab = 'local'" :class="{'bg-white text-slate-900 font-bold shadow-2xs': activeHistoryTab === 'local', 'text-slate-600 hover:text-slate-900': activeHistoryTab !== 'local'}" class="px-3 py-1 rounded-lg text-xs transition inline-flex items-center gap-1">
+                            <span>💻 Lokal</span>
+                            <span class="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded-full font-bold">{{ historyList.length }}</span>
+                        </button>
                     </div>
-                    <div v-for="(item, idx) in historyList" :key="idx" class="p-3 rounded-xl border border-slate-200 bg-white hover:border-blue-300 transition flex items-center justify-between gap-3">
+
+                    <!-- Kotak Pencarian -->
+                    <div class="relative w-full sm:w-64">
+                        <input v-model="historySearchQuery" type="text" placeholder="Cari surat, kapal, agen..." class="w-full text-xs pl-8 pr-3 py-1.5 border border-slate-300 rounded-lg focus:outline-hidden focus:ring-1 focus:ring-blue-500 bg-white">
+                        <svg class="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <button v-if="historySearchQuery" @click="historySearchQuery = ''" class="absolute right-2 top-2 text-slate-400 hover:text-slate-600">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Daftar Riwayat -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-2.5">
+                    <div v-if="mergedHistoryList.length === 0" class="text-center py-12 text-slate-400 text-xs">
+                        <svg class="w-10 h-10 mx-auto mb-2 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        <p class="font-semibold text-slate-600 mb-0.5">Belum ada data riwayat surat</p>
+                        <p class="text-[11px] text-slate-400">Surat yang dicetak atau disimpan otomatis muncul di sini dan tersinkron ke Google Sheets.</p>
+                    </div>
+
+                    <div v-for="(item, idx) in mergedHistoryList" :key="item.id || idx" class="p-3.5 rounded-xl border border-slate-200 bg-white hover:border-blue-400 transition-all duration-150 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs hover:shadow-xs">
                         <div class="flex-1 min-w-0">
-                            <div class="flex items-center gap-2">
-                                <span class="font-bold text-slate-800 text-xs font-mono">{{ item.form.noSurat }}</span>
-                                <span class="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.2 rounded">{{ item.savedAt }}</span>
+                            <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                                <span class="font-bold text-slate-900 text-xs font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">{{ item.noSurat || 'Tanpa Nomor' }}</span>
+                                <span v-if="item.source === 'cloud'" class="text-[10px] bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.2 rounded font-semibold inline-flex items-center gap-1">
+                                    <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20"><path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z"></path></svg>
+                                    Cloud Sheets
+                                </span>
+                                <span v-else class="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.2 rounded font-semibold inline-flex items-center gap-1">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                    Lokal
+                                </span>
+                                <span class="text-[10px] text-slate-400 ml-auto">{{ item.savedAt }}</span>
                             </div>
-                            <div class="text-[11px] text-slate-600 font-semibold uppercase mt-0.5 truncate">
-                                {{ item.form.namaKapal }} &bull; {{ item.form.agenKapal }}
+                            <div class="text-xs text-slate-800 font-bold uppercase truncate">
+                                {{ item.namaKapal || '-' }} <span class="text-slate-400 font-normal">&bull;</span> <span class="text-slate-600 font-semibold">{{ item.agenKapal || '-' }}</span>
                             </div>
-                            <div class="text-[10px] text-slate-400 truncate mt-0.5">
-                                {{ item.form.rincian }}
+                            <div class="text-[11px] text-slate-500 truncate mt-0.5">
+                                {{ item.rincian || 'Tidak ada rincian muatan' }}
                             </div>
                         </div>
-                        <div class="flex items-center gap-1.5 shrink-0">
-                            <button @click="loadFromHistory(idx)" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold">
-                                Muat
+
+                        <div class="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                            <!-- Tombol Lihat PDF jika ada link Google Drive -->
+                            <a v-if="item.fileUrl" :href="item.fileUrl" target="_blank" class="px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 rounded-lg text-xs font-semibold inline-flex items-center gap-1 shadow-2xs transition">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                                <span>PDF</span>
+                            </a>
+
+                            <!-- Tombol Muat ke Formulir -->
+                            <button @click="loadFromHistoryItem(item)" type="button" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition flex items-center gap-1 active:scale-95">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                                <span>Muat</span>
                             </button>
-                            <button @click="deleteHistory(idx)" class="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg">
+
+                            <!-- Tombol Hapus -->
+                            <button @click="deleteHistoryItem(item)" type="button" class="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition" title="Hapus riwayat ini">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-3 border-t border-slate-200 bg-slate-50 flex justify-between items-center rounded-b-2xl">
-                    <button v-if="historyList.length > 0" @click="clearAllHistory" class="text-xs text-rose-600 hover:underline">
-                        Hapus Semua Riwayat
-                    </button>
-                    <button @click="showHistoryModal = false" class="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold ml-auto">
-                        Tutup
-                    </button>
+                <!-- Footer Modal -->
+                <div class="p-3.5 border-t border-slate-200 bg-slate-50 flex items-center justify-between rounded-b-2xl text-xs">
+                    <div class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                        <span v-if="lastCloudSyncTime" class="text-emerald-700 font-semibold">✓ Sinkron terakhir: {{ lastCloudSyncTime }}</span>
+                        <span v-else>💡 Klik "Muat" pada surat untuk mengisi formulir secara otomatis.</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button v-if="historyList.length > 0" @click="clearAllHistory" type="button" class="text-xs text-rose-600 hover:underline mr-2">
+                            Hapus Lokal
+                        </button>
+                        <button @click="showHistoryModal = false" type="button" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold ml-auto transition">
+                            Tutup
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1447,6 +1522,11 @@
 
                 const savedPresets = ref([]);
                 const historyList = ref([]);
+                const cloudHistoryList = ref([]);
+                const loadingCloudHistory = ref(false);
+                const historySearchQuery = ref('');
+                const activeHistoryTab = ref('all'); // 'all', 'cloud', 'local'
+                const lastCloudSyncTime = ref('');
 
                 const updateFullNomor = () => {
                     form.noSurat = 'KL.206/' + (noUrut.value || '01') + '/' + (bulanRomawi.value || 'IX') + '/KSOP.BND-' + (tahunSurat.value || '2026');
@@ -1604,33 +1684,168 @@
                     }
                 };
 
-                const saveToHistory = () => {
-                    const now = new Date();
-                    const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    historyList.value.unshift({
-                        savedAt: dateStr,
-                        form: JSON.parse(JSON.stringify(form))
-                    });
-                    if (historyList.value.length > 50) historyList.value.pop();
-                    localStorage.setItem('ksop_letter_history', JSON.stringify(historyList.value));
-                    alert('Surat persetujuan berhasil disimpan ke Riwayat!');
-                };
+                const mergedHistoryList = computed(() => {
+                    let list = [];
+                    const cloudNos = new Set();
 
-                const loadFromHistory = (idx) => {
-                    const item = historyList.value[idx];
-                    if (item && item.form) {
-                        Object.assign(form, item.form);
-                        showHistoryModal.value = false;
+                    if (activeHistoryTab.value === 'all' || activeHistoryTab.value === 'cloud') {
+                        cloudHistoryList.value.forEach(c => {
+                            list.push({ ...c, source: 'cloud' });
+                            if (c.noSurat) cloudNos.add(c.noSurat.trim());
+                        });
+                    }
+
+                    if (activeHistoryTab.value === 'all' || activeHistoryTab.value === 'local') {
+                        historyList.value.forEach(item => {
+                            const no = (item.form && item.form.noSurat) ? item.form.noSurat.trim() : '';
+                            if (activeHistoryTab.value === 'local' || !cloudNos.has(no)) {
+                                list.push({
+                                    id: item.id || ('LOKAL-' + (item.savedAt || Math.random())),
+                                    savedAt: item.savedAt,
+                                    noSurat: no,
+                                    namaKapal: item.form ? item.form.namaKapal : '',
+                                    agenKapal: item.form ? item.form.agenKapal : '',
+                                    rincian: item.form ? item.form.rincian : '',
+                                    fileUrl: item.fileUrl || null,
+                                    form: item.form,
+                                    source: 'local'
+                                });
+                            }
+                        });
+                    }
+
+                    if (historySearchQuery.value && historySearchQuery.value.trim()) {
+                        const q = historySearchQuery.value.toLowerCase().trim();
+                        list = list.filter(item => {
+                            const no = (item.noSurat || '').toLowerCase();
+                            const ship = (item.namaKapal || '').toLowerCase();
+                            const agent = (item.agenKapal || '').toLowerCase();
+                            const desc = (item.rincian || '').toLowerCase();
+                            return no.includes(q) || ship.includes(q) || agent.includes(q) || desc.includes(q);
+                        });
+                    }
+
+                    return list;
+                });
+
+                const totalHistoryCount = computed(() => {
+                    if (cloudHistoryList.value.length > 0) {
+                        return cloudHistoryList.value.length;
+                    }
+                    return historyList.value.length;
+                });
+
+                const fetchCloudHistory = async () => {
+                    const url = gdriveWebhookUrl.value ? gdriveWebhookUrl.value.trim().replace(/['"]/g, '') : '';
+                    if (!url) return;
+
+                    loadingCloudHistory.value = true;
+                    try {
+                        const fetchUrl = url + (url.includes('?') ? '&' : '?') + 'action=get_history&rootFolder=' + encodeURIComponent(gdriveRootFolder.value || 'Arsip Surat KSOP Banda Naira') + '&_t=' + Date.now();
+                        const res = await fetch(fetchUrl, {
+                            method: 'GET',
+                            redirect: 'follow'
+                        });
+                        const resText = await res.text();
+                        let json;
+                        try {
+                            json = JSON.parse(resText);
+                        } catch(pe) {
+                            return;
+                        }
+
+                        if (json && json.status === 'success' && Array.isArray(json.data)) {
+                            cloudHistoryList.value = json.data;
+                            lastCloudSyncTime.value = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                        }
+                    } catch(err) {
+                        console.warn('Gagal memuat riwayat online:', err);
+                    } finally {
+                        loadingCloudHistory.value = false;
                     }
                 };
 
-                const deleteHistory = (idx) => {
-                    historyList.value.splice(idx, 1);
+                const openHistoryModal = () => {
+                    showHistoryModal.value = true;
+                    if (gdriveWebhookUrl.value) {
+                        fetchCloudHistory();
+                    }
+                };
+
+                const saveToHistory = () => {
+                    const now = new Date();
+                    const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const currentForm = JSON.parse(JSON.stringify(form));
+
+                    historyList.value.unshift({
+                        id: 'LOKAL-' + now.getTime(),
+                        savedAt: dateStr,
+                        form: currentForm,
+                        source: 'local'
+                    });
+                    if (historyList.value.length > 50) historyList.value.pop();
                     localStorage.setItem('ksop_letter_history', JSON.stringify(historyList.value));
+
+                    // Jika Google Drive terhubung, kirim juga ke Google Spreadsheet
+                    const url = gdriveWebhookUrl.value ? gdriveWebhookUrl.value.trim().replace(/['"]/g, '') : '';
+                    if (url) {
+                        fetch(url, {
+                            method: 'POST',
+                            redirect: 'follow',
+                            body: JSON.stringify({
+                                action: 'save_history',
+                                formData: currentForm,
+                                rootFolder: gdriveRootFolder.value || 'Arsip Surat KSOP Banda Naira'
+                            }),
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                        }).then(r => r.text()).then(() => {
+                            fetchCloudHistory();
+                        }).catch(e => console.warn('Sync cloud error:', e));
+
+                        alert('✓ Tersimpan ke Riwayat Lokal dan disinkronkan ke Database Cloud (Google Sheets)!');
+                    } else {
+                        alert('✓ Surat persetujuan berhasil disimpan ke Riwayat Lokal!');
+                    }
+                };
+
+                const loadFromHistoryItem = (item) => {
+                    if (item && item.form) {
+                        Object.assign(form, item.form);
+                        showHistoryModal.value = false;
+                        if (typeof switchMobileTab === 'function') {
+                            switchMobileTab('form');
+                        }
+                    }
+                };
+
+                const deleteHistoryItem = async (item) => {
+                    if (!confirm(`Hapus riwayat untuk "${item.namaKapal || item.noSurat}"?`)) return;
+
+                    if (item.source === 'cloud') {
+                        const url = gdriveWebhookUrl.value ? gdriveWebhookUrl.value.trim().replace(/['"]/g, '') : '';
+                        if (url && item.id) {
+                            try {
+                                fetch(url, {
+                                    method: 'POST',
+                                    redirect: 'follow',
+                                    body: JSON.stringify({
+                                        action: 'delete_history',
+                                        id: item.id,
+                                        rootFolder: gdriveRootFolder.value || 'Arsip Surat KSOP Banda Naira'
+                                    }),
+                                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                                }).catch(e => console.warn(e));
+                            } catch(e) {}
+                        }
+                        cloudHistoryList.value = cloudHistoryList.value.filter(c => c.id !== item.id);
+                    } else {
+                        historyList.value = historyList.value.filter(h => h.id !== item.id);
+                        localStorage.setItem('ksop_letter_history', JSON.stringify(historyList.value));
+                    }
                 };
 
                 const clearAllHistory = () => {
-                    if (confirm('Yakin ingin menghapus semua riwayat surat?')) {
+                    if (confirm('Hapus semua riwayat lokal di perangkat ini?')) {
                         historyList.value = [];
                         localStorage.removeItem('ksop_letter_history');
                     }
@@ -1689,6 +1904,13 @@
                             historyList.value = [];
                         }
                     }
+
+                    // Ambil riwayat online Google Sheets jika Web App URL terpasang
+                    setTimeout(() => {
+                        if (gdriveWebhookUrl.value) {
+                            fetchCloudHistory();
+                        }
+                    }, 600);
                 });
 
                 // --- INTEGRASI GOOGLE DRIVE ARSIP OTOMATIS ---
@@ -1703,31 +1925,42 @@
                 const copiedScriptCode = ref(false);
 
                 const appsScriptTemplate = `/**
- * GOOGLE APPS SCRIPT: ARSIP SURAT OTOMATIS KSOP KELAS IV BANDA NAIRA
- * Struktur Folder: [Folder Utama] -> [Tahun] -> [Bulan] -> [File PDF]
+ * GOOGLE APPS SCRIPT: ARSIP SURAT & DATABASE RIWAYAT ONLINE KSOP BANDA NAIRA
  */
 
 function doPost(e) {
   try {
     if (!e || !e.postData || !e.postData.contents) {
-      return createJsonResponse({ status: "error", message: "Data kiriman kosong atau tidak valid." });
+      return createJsonResponse({ status: "error", message: "Data kiriman kosong." });
     }
 
     var requestData = JSON.parse(e.postData.contents);
+    var action = requestData.action || "upload_pdf";
+    var rootFolderName = requestData.rootFolder || "Arsip Surat KSOP Banda Naira";
+
+    if (action === "save_history") {
+      var rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), rootFolderName);
+      var recordId = logToSpreadsheet(rootFolder, requestData, requestData.fileUrl || "-");
+      return createJsonResponse({ status: "success", message: "Data surat berhasil dicatat ke Spreadsheet!", id: recordId });
+    }
+
+    if (action === "delete_history") {
+      var rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), rootFolderName);
+      var isDeleted = deleteFromSpreadsheet(rootFolder, requestData.id);
+      return createJsonResponse({ status: isDeleted ? "success" : "not_found" });
+    }
+
     var base64Data = requestData.fileData;
     var fileName = requestData.fileName || ("Surat_Persetujuan_" + new Date().getTime() + ".pdf");
     var yearName = String(requestData.year || new Date().getFullYear());
     var monthName = String(requestData.month || ("Bulan " + (new Date().getMonth() + 1)));
-    var rootFolderName = requestData.rootFolder || "Arsip Surat KSOP Banda Naira";
 
     if (!base64Data) {
       return createJsonResponse({ status: "error", message: "File PDF base64 tidak ditemukan." });
     }
 
     var cleanBase64 = base64Data;
-    if (cleanBase64.indexOf(",") > -1) {
-      cleanBase64 = cleanBase64.split(",")[1];
-    }
+    if (cleanBase64.indexOf(",") > -1) cleanBase64 = cleanBase64.split(",")[1];
     cleanBase64 = cleanBase64.replace(/[\\s\\r\\n]/g, "");
 
     var decodedBlob;
@@ -1742,46 +1975,175 @@ function doPost(e) {
     var yearFolder = getOrCreateFolder(rootFolder, yearName);
     var monthFolder = getOrCreateFolder(yearFolder, monthName);
     var savedFile = monthFolder.createFile(pdfBlob);
+    var fileUrl = savedFile.getUrl();
+
+    var logId = logToSpreadsheet(rootFolder, requestData, fileUrl);
 
     return createJsonResponse({
       status: "success",
-      message: "File berhasil diarsipkan ke Google Drive!",
+      message: "File berhasil diarsipkan ke Google Drive & dicatat ke Database Riwayat!",
       fileName: fileName,
-      fileUrl: savedFile.getUrl(),
+      fileUrl: fileUrl,
       fileId: savedFile.getId(),
       folderPath: rootFolderName + " > " + yearName + " > " + monthName,
       year: yearName,
-      month: monthName
+      month: monthName,
+      historyId: logId
     });
-
   } catch (err) {
-    return createJsonResponse({
-      status: "error",
-      message: "Terjadi kesalahan pada Google Script: " + err.toString()
-    });
+    return createJsonResponse({ status: "error", message: err.toString() });
   }
 }
 
 function doGet(e) {
-  return createJsonResponse({
-    status: "ok",
-    message: "Layanan Google Apps Script KSOP Banda Naira aktif dan siap digunakan!",
-    timestamp: new Date().toISOString()
-  });
+  try {
+    var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : "";
+    var rootFolderName = (e && e.parameter && e.parameter.rootFolder) ? e.parameter.rootFolder : "Arsip Surat KSOP Banda Naira";
+
+    if (action === "get_history") {
+      var rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), rootFolderName);
+      var historyData = getHistoryFromSpreadsheet(rootFolder, 60);
+      return createJsonResponse({ status: "success", data: historyData });
+    }
+
+    return createJsonResponse({
+      status: "ok",
+      message: "Layanan Google Apps Script & Database Riwayat KSOP Banda Naira aktif!",
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    return createJsonResponse({ status: "error", message: err.toString() });
+  }
+}
+
+function getOrCreateHistorySheet(rootFolder) {
+  var fileName = "Database Riwayat Surat KSOP Banda Naira";
+  var files = rootFolder.getFilesByName(fileName);
+  var spreadsheet;
+
+  if (files.hasNext()) {
+    spreadsheet = SpreadsheetApp.openById(files.next().getId());
+  } else {
+    spreadsheet = SpreadsheetApp.create(fileName);
+    var driveFile = DriveApp.getFileById(spreadsheet.getId());
+    rootFolder.addFile(driveFile);
+    DriveApp.getRootFolder().removeFile(driveFile);
+  }
+
+  var sheet = spreadsheet.getActiveSheet();
+  sheet.setName("Riwayat Surat");
+
+  if (sheet.getLastRow() === 0) {
+    var headers = ["ID", "Waktu Dibuat", "Nomor Surat", "Nama Kapal", "Jenis Kapal", "GT", "Nahkoda", "Agen / Pemilik", "Keperluan / Rincian", "Pejabat", "NIP Pejabat", "Tanggal Surat", "Link PDF Google Drive", "Data JSON Lengkap"];
+    sheet.appendRow(headers);
+    var headerRange = sheet.getRange(1, 1, 1, headers.length);
+    headerRange.setFontWeight("bold");
+    headerRange.setBackground("#1e3a8a");
+    headerRange.setFontColor("#ffffff");
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function logToSpreadsheet(rootFolder, data, fileUrl) {
+  try {
+    var sheet = getOrCreateHistorySheet(rootFolder);
+    var formData = data.formData || data.form || {};
+    var id = "KSOP-" + new Date().getTime();
+    var now = new Date();
+    var dateStr = Utilities.formatDate(now, "Asia/Jayapura", "dd MMM yyyy HH:mm:ss");
+
+    var row = [
+      id,
+      dateStr,
+      formData.noSurat || data.fileName || "-",
+      formData.namaKapal || "-",
+      formData.jenisKapal || "-",
+      formData.gt || "-",
+      formData.nahkoda || "-",
+      formData.agenKapal || "-",
+      formData.rincian || "-",
+      formData.namaPejabat || "-",
+      formData.nipPejabat || "-",
+      formData.tanggalSurat || "-",
+      fileUrl || "-",
+      JSON.stringify(formData)
+    ];
+
+    sheet.appendRow(row);
+    return id;
+  } catch (err) {
+    return null;
+  }
+}
+
+function getHistoryFromSpreadsheet(rootFolder, limit) {
+  try {
+    var sheet = getOrCreateHistorySheet(rootFolder);
+    var lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return [];
+
+    var maxRecords = limit || 60;
+    var startRow = Math.max(2, lastRow - maxRecords + 1);
+    var numRows = lastRow - startRow + 1;
+    var values = sheet.getRange(startRow, 1, numRows, 14).getValues();
+
+    var results = [];
+    for (var i = values.length - 1; i >= 0; i--) {
+      var r = values[i];
+      var parsedForm = {};
+      try {
+        parsedForm = r[13] ? JSON.parse(r[13]) : {};
+      } catch (ep) {
+        parsedForm = { noSurat: r[2], namaKapal: r[3], jenisKapal: r[4], gt: r[5], nahkoda: r[6], agenKapal: r[7], rincian: r[8], namaPejabat: r[9], nipPejabat: r[10], tanggalSurat: r[11] };
+      }
+
+      results.push({
+        id: r[0],
+        savedAt: r[1],
+        noSurat: r[2],
+        namaKapal: r[3],
+        agenKapal: r[7],
+        rincian: r[8],
+        fileUrl: (r[12] && r[12] !== "-") ? r[12] : null,
+        form: parsedForm,
+        source: "cloud"
+      });
+    }
+    return results;
+  } catch (err) {
+    return [];
+  }
+}
+
+function deleteFromSpreadsheet(rootFolder, id) {
+  try {
+    if (!id) return false;
+    var sheet = getOrCreateHistorySheet(rootFolder);
+    var lastRow = sheet.getLastRow();
+    if (lastRow <= 1) return false;
+
+    var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    for (var i = 0; i < ids.length; i++) {
+      if (ids[i][0] === id) {
+        sheet.deleteRow(i + 2);
+        return true;
+      }
+    }
+    return false;
+  } catch (err) {
+    return false;
+  }
 }
 
 function getOrCreateFolder(parentFolder, folderName) {
   var folders = parentFolder.getFoldersByName(folderName);
-  if (folders.hasNext()) {
-    return folders.next();
-  } else {
-    return parentFolder.createFolder(folderName);
-  }
+  if (folders.hasNext()) return folders.next();
+  return parentFolder.createFolder(folderName);
 }
 
 function createJsonResponse(data) {
-  return ContentService.createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
 }`;
 
                 const copyAppsScriptCode = () => {
@@ -1975,7 +2337,8 @@ function createJsonResponse(data) {
                             fileName: fileName,
                             year: yearName,
                             month: monthName,
-                            rootFolder: gdriveRootFolder.value || 'Arsip Surat KSOP Banda Naira'
+                            rootFolder: gdriveRootFolder.value || 'Arsip Surat KSOP Banda Naira',
+                            formData: JSON.parse(JSON.stringify(form))
                         };
 
                         const response = await fetch(url, {
@@ -2006,6 +2369,9 @@ function createJsonResponse(data) {
                             gdriveStatus.value = 'success';
                             gdriveMessage.value = 'Tersimpan di: ' + (result.folderPath || (yearName + ' > ' + monthName)) + ' (' + fileName + ')';
                             gdriveLastFileUrl.value = result.fileUrl || '';
+
+                            // Otomatis sinkronkan riwayat cloud terbaru
+                            fetchCloudHistory();
 
                             setTimeout(() => {
                                 if (gdriveStatus.value === 'success') {
@@ -2086,6 +2452,17 @@ function createJsonResponse(data) {
                     newShip,
                     savedPresets,
                     historyList,
+                    cloudHistoryList,
+                    loadingCloudHistory,
+                    historySearchQuery,
+                    activeHistoryTab,
+                    mergedHistoryList,
+                    totalHistoryCount,
+                    lastCloudSyncTime,
+                    fetchCloudHistory,
+                    openHistoryModal,
+                    loadFromHistoryItem,
+                    deleteHistoryItem,
                     bbmQuickOptions,
                     kemenhubLogoBase64,
                     updateFullNomor,
@@ -2101,8 +2478,8 @@ function createJsonResponse(data) {
                     deletePreset,
                     resetPresetsToDefault,
                     saveToHistory,
-                    loadFromHistory,
-                    deleteHistory,
+                    loadFromHistory: loadFromHistoryItem,
+                    deleteHistory: deleteHistoryItem,
                     clearAllHistory,
                     resetForm,
                     printDoc,
