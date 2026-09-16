@@ -50,6 +50,15 @@
             line-height: 1.18;
         }
 
+        /* Mode Khusus Ekspor PDF Google Drive: Pas Tepat 1 Lembar A4 (0% Tumpah ke Halaman 2) */
+        .gdrive-pdf-mode {
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 5mm 13mm 6mm 13mm !important;
+            max-height: 296mm !important;
+            overflow: hidden !important;
+        }
+
         /* Garis Dobel Pembatas Kop Surat Resmi Kemenhub */
         .kop-divider-thick {
             border-top: 2.25pt solid black;
@@ -1875,15 +1884,30 @@ function createJsonResponse(data) {
                             throw new Error('Library html2pdf belum selesai dimuat. Pastikan perangkat Anda terhubung ke internet.');
                         }
 
+                        // Aktifkan mode pas 1 lembar A4 tanpa shadow & margin luar
+                        element.classList.add('gdrive-pdf-mode');
+
                         const opt = {
-                            margin: [4, 8, 3, 8],
+                            margin: 0,
                             filename: fileName,
                             image: { type: 'jpeg', quality: 0.98 },
-                            html2canvas: { scale: 2, useCORS: true, logging: false },
-                            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                            html2canvas: { 
+                                scale: 2, 
+                                useCORS: true, 
+                                logging: false,
+                                scrollY: 0
+                            },
+                            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                            pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
                         };
 
-                        const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+                        let pdfDataUri;
+                        try {
+                            pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+                        } finally {
+                            element.classList.remove('gdrive-pdf-mode');
+                        }
+
                         let cleanBase64 = (pdfDataUri && pdfDataUri.indexOf(',') > -1) ? pdfDataUri.split(',')[1] : (pdfDataUri || '');
                         cleanBase64 = cleanBase64.replace(/[\s\r\n]/g, '');
 
