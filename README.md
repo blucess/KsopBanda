@@ -25,6 +25,10 @@ Aplikasi web modern berbasis klien (*client-side standalone*) untuk mengotomasi 
 - **Multi-Format Export:**
   - **Unduh Word (.doc):** Menghasilkan dokumen Microsoft Word murni (Word MSO HTML) dengan tata letak Print Layout.
   - **Cetak Langsung / Simpan PDF:** Siap dicetak langsung dari peramban dengan pengaturan `@media print` yang bersih dan rapi.
+- **Arsip Otomatis ke Google Drive (Tahun / Bulan):**
+  - Mengarsipkan salinan PDF dokumen secara otomatis ke Google Drive setiap kali tombol **Cetak / PDF** diklik.
+  - Pengelompokan folder otomatis bertingkat: `[Folder Utama] > [Tahun] > [Bulan]` (contoh: `Arsip Surat KSOP Banda Naira > 2026 > 09 - September`).
+  - Menggunakan Google Apps Script Web App gratis tanpa perlu server berbayar, aman, dan langsung aktif di akun Google kantor.
 - **Responsif di HP / Smartphone (Mobile Optimized):**
   - Navigasi tab khusus mobile (`Formulir Input` & `Pratinjau Surat A4`).
   - Fitur **Auto-Fit Layar HP**: Lembar surat A4 otomatis diskalakan agar pas dengan lebar layar ponsel tanpa perlu geser horizontal.
@@ -65,6 +69,7 @@ Aplikasi ini dapat diakses secara publik dan gratis melalui **GitHub Pages**:
 
 ```text
 ├── index.html                           # Aplikasi utama (Frontend SPA, Vue 3, Tailwind CSS, Base64 Logo)
+├── google_drive_script.gs               # Backend skrip Google Apps Script untuk arsip otomatis ke Google Drive
 ├── server.js                            # HTTP server lokal ringan untuk akses jaringan HP / LAN
 ├── buka_di_hp.bat                       # Script 1-klik untuk memulai server HP di Windows
 ├── template.doc                         # Template dokumen referensi resmi KSOP
