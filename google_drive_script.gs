@@ -44,9 +44,18 @@ function doPost(e) {
     }
 
     // Bersihkan prefix data uri jika ada (ambil data murni base64 setelah koma)
-    var cleanBase64 = base64Data.indexOf(",") > -1 ? base64Data.split(",")[1] : base64Data;
-    cleanBase64 = cleanBase64.replace(/\s/g, "");
-    var decodedBlob = Utilities.base64Decode(cleanBase64);
+    var cleanBase64 = base64Data;
+    if (cleanBase64.indexOf(",") > -1) {
+      cleanBase64 = cleanBase64.split(",")[1];
+    }
+    cleanBase64 = cleanBase64.replace(/[\s\r\n]/g, "");
+
+    var decodedBlob;
+    try {
+      decodedBlob = Utilities.base64Decode(cleanBase64);
+    } catch (eDec) {
+      decodedBlob = Utilities.base64DecodeWebSafe(cleanBase64);
+    }
     var pdfBlob = Utilities.newBlob(decodedBlob, "application/pdf", fileName);
 
     // 1. Dapatkan atau buat Folder Utama di root Google Drive
