@@ -88,7 +88,18 @@ function doPost(e) {
     // 3. Dapatkan atau buat Folder Bulan (misal: "09 - September")
     var monthFolder = getOrCreateFolder(yearFolder, monthName);
 
-    // 4. Buat dan simpan file PDF ke dalam Folder Bulan
+    // Hapus file lama dengan nama yang sama di folder bulan & tahun ini
+    var existingFiles = monthFolder.getFilesByName(fileName);
+    while (existingFiles.hasNext()) {
+      var oldFile = existingFiles.next();
+      try {
+        oldFile.setTrashed(true); // Pindahkan file lama ke sampah Google Drive
+      } catch (eTrash) {
+        monthFolder.removeFile(oldFile);
+      }
+    }
+
+    // 4. Buat dan simpan file PDF baru ke dalam Folder Bulan
     var savedFile = monthFolder.createFile(pdfBlob);
     var fileUrl = savedFile.getUrl();
 
@@ -191,7 +202,7 @@ function getOrCreateHistorySheet(rootFolder) {
   return sheet;
 }
 
-// Catat data surat ke baris baru di Spreadsheet
+// Catat data surat ke Spreadsheet (perbarui jika nomor surat sudah ada agar tidak ganda)
 function logToSpreadsheet(rootFolder, data, fileUrl) {
   try {
     var sheet = getOrCreateHistorySheet(rootFolder);
@@ -199,11 +210,12 @@ function logToSpreadsheet(rootFolder, data, fileUrl) {
     var id = "KSOP-" + new Date().getTime();
     var now = new Date();
     var dateStr = Utilities.formatDate(now, "Asia/Jayapura", "dd MMM yyyy HH:mm:ss");
+    var targetNoSurat = (formData.noSurat || data.fileName || "-").toString().trim();
 
     var row = [
       id,
       dateStr,
-      formData.noSurat || data.fileName || "-",
+      targetNoSurat,
       formData.namaKapal || "-",
       formData.jenisKapal || "-",
       formData.gt || "-",
@@ -217,8 +229,27 @@ function logToSpreadsheet(rootFolder, data, fileUrl) {
       JSON.stringify(formData)
     ];
 
-    sheet.appendRow(row);
-    return id;
+    // Cek apakah nomor surat sudah pernah ada di Spreadsheet
+    var lastRow = sheet.getLastRow();
+    var existingRow = -1;
+    if (lastRow > 1 && targetNoSurat && targetNoSurat !== "-") {
+      var existingNos = sheet.getRange(2, 3, lastRow - 1, 1).getValues();
+      for (var i = 0; i < existingNos.length; i++) {
+        if (existingNos[i][0] && existingNos[i][0].toString().trim() === targetNoSurat) {
+          existingRow = i + 2;
+          break;
+        }
+      }
+    }
+
+    if (existingRow > 0) {
+      // Perbarui baris yang sudah ada dengan data dan link PDF terbaru
+      sheet.getRange(existingRow, 1, 1, row.length).setValues([row]);
+      return id;
+    } else {
+      sheet.appendRow(row);
+      return id;
+    }
   } catch (err) {
     Logger.log("Error logToSpreadsheet: " + err.toString());
     return null;

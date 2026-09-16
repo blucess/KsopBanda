@@ -1897,6 +1897,13 @@ function doPost(e) {
     var rootFolder = getOrCreateFolder(DriveApp.getRootFolder(), rootFolderName);
     var yearFolder = getOrCreateFolder(rootFolder, yearName);
     var monthFolder = getOrCreateFolder(yearFolder, monthName);
+
+    var existingFiles = monthFolder.getFilesByName(fileName);
+    while (existingFiles.hasNext()) {
+      var oldFile = existingFiles.next();
+      try { oldFile.setTrashed(true); } catch(e) { monthFolder.removeFile(oldFile); }
+    }
+
     var savedFile = monthFolder.createFile(pdfBlob);
     var fileUrl = savedFile.getUrl();
 
@@ -1975,11 +1982,12 @@ function logToSpreadsheet(rootFolder, data, fileUrl) {
     var id = "KSOP-" + new Date().getTime();
     var now = new Date();
     var dateStr = Utilities.formatDate(now, "Asia/Jayapura", "dd MMM yyyy HH:mm:ss");
+    var targetNoSurat = (formData.noSurat || data.fileName || "-").toString().trim();
 
     var row = [
       id,
       dateStr,
-      formData.noSurat || data.fileName || "-",
+      targetNoSurat,
       formData.namaKapal || "-",
       formData.jenisKapal || "-",
       formData.gt || "-",
@@ -1993,8 +2001,25 @@ function logToSpreadsheet(rootFolder, data, fileUrl) {
       JSON.stringify(formData)
     ];
 
-    sheet.appendRow(row);
-    return id;
+    var lastRow = sheet.getLastRow();
+    var existingRow = -1;
+    if (lastRow > 1 && targetNoSurat && targetNoSurat !== "-") {
+      var existingNos = sheet.getRange(2, 3, lastRow - 1, 1).getValues();
+      for (var i = 0; i < existingNos.length; i++) {
+        if (existingNos[i][0] && existingNos[i][0].toString().trim() === targetNoSurat) {
+          existingRow = i + 2;
+          break;
+        }
+      }
+    }
+
+    if (existingRow > 0) {
+      sheet.getRange(existingRow, 1, 1, row.length).setValues([row]);
+      return id;
+    } else {
+      sheet.appendRow(row);
+      return id;
+    }
   } catch (err) {
     return null;
   }
