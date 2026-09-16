@@ -1846,7 +1846,9 @@
                 });
 
                 // --- INTEGRASI GOOGLE DRIVE ARSIP OTOMATIS ---
-                const gdriveWebhookUrl = ref(localStorage.getItem('ksop_gdrive_webhook_url') || '');
+                const DEFAULT_GDRIVE_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwiVioHls9ClVD14Ez74aIwCkyJpZeTJHwQtr00pE1c3pk5jbxayHCCaYoXADY38DI12g/exec';
+                const storedWebhookUrl = localStorage.getItem('ksop_gdrive_webhook_url');
+                const gdriveWebhookUrl = ref((storedWebhookUrl && storedWebhookUrl.trim() !== '' && storedWebhookUrl !== 'null') ? storedWebhookUrl.trim() : DEFAULT_GDRIVE_WEBHOOK_URL);
                 const gdriveRootFolder = ref(localStorage.getItem('ksop_gdrive_root_folder') || 'Arsip Surat KSOP Banda Naira');
                 const gdriveAutoArchive = ref(localStorage.getItem('ksop_gdrive_auto_archive') !== 'false');
                 const showGDriveModal = ref(false);
