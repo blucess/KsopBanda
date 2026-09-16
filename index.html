@@ -50,15 +50,24 @@
             line-height: 1.18;
         }
 
-        /* Mode Khusus Ekspor PDF Google Drive: Pas Tepat 1 Lembar A4 (0% Tumpah ke Halaman 2) */
+        /* Mode Khusus Ekspor PDF Google Drive: Pas Tepat 1 Lembar A4 Utuh & Nyaman (Tanpa Terpotong) */
         .gdrive-pdf-mode {
             box-shadow: none !important;
             margin: 0 !important;
-            padding: 5mm 13mm 6mm 13mm !important;
-            min-height: 288mm !important;
-            max-height: 288mm !important;
-            height: 288mm !important;
-            overflow: hidden !important;
+            padding: 5mm 13mm 8mm 13mm !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            height: auto !important;
+            overflow: visible !important;
+        }
+        .gdrive-pdf-mode .doc-section {
+            margin-bottom: 5pt !important;
+        }
+        .gdrive-pdf-mode .signature-space {
+            height: 44pt !important;
+        }
+        .gdrive-pdf-mode .signature-section {
+            margin-top: 4pt !important;
         }
 
         /* Garis Dobel Pembatas Kop Surat Resmi Kemenhub */
