@@ -2148,7 +2148,7 @@ function createJsonResponse(data) {
                         const isFileProtocol = typeof window !== 'undefined' && window.location && window.location.protocol === 'file:';
                         let hint = '';
                         if (isFileProtocol) {
-                            hint = '\n\n💡 CATATAN KHUSUS:\nAnda saat ini membuka file secara langsung (file://). Kebijakan keamanan browser memblokir koneksi API eksternal dari file lokal.\n\nSolusi: Buka aplikasi melalui server lokal (jalankan buka_di_hp.bat lalu buka http://localhost:3000) atau buka via link GitHub Pages Anda.';
+                            hint = '\n\n💡 CATATAN KHUSUS:\nAnda saat ini membuka file secara langsung (file://). Kebijakan keamanan browser dapat memblokir koneksi API eksternal dari file lokal.\n\nSolusi: Buka aplikasi via tautan GitHub Pages Anda (https://blucess.github.io/KsopBanda/).';
                         }
                         alert('Gagal terhubung ke Google Apps Script!\n\nDetail: ' + e.message + '\n\nPastikan:\n1. URL berformat https://script.google.com/macros/s/.../exec\n2. Pada saat Deploy di Google Script, "Who has access" disetel ke "Anyone"' + hint);
                     } finally {
