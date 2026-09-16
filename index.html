@@ -55,7 +55,9 @@
             box-shadow: none !important;
             margin: 0 !important;
             padding: 5mm 13mm 6mm 13mm !important;
-            max-height: 296mm !important;
+            min-height: 288mm !important;
+            max-height: 288mm !important;
+            height: 288mm !important;
             overflow: hidden !important;
         }
 
@@ -1884,6 +1886,11 @@ function createJsonResponse(data) {
                             throw new Error('Library html2pdf belum selesai dimuat. Pastikan perangkat Anda terhubung ke internet.');
                         }
 
+                        // Simpan zoom level saat ini dan kembalikan ke 100% agar capture presisi
+                        const prevZoom = zoomLevel.value;
+                        zoomLevel.value = 100;
+                        await new Promise(resolve => setTimeout(resolve, 80));
+
                         // Aktifkan mode pas 1 lembar A4 tanpa shadow & margin luar
                         element.classList.add('gdrive-pdf-mode');
 
@@ -1903,9 +1910,23 @@ function createJsonResponse(data) {
 
                         let pdfDataUri;
                         try {
-                            pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+                            pdfDataUri = await html2pdf()
+                                .set(opt)
+                                .from(element)
+                                .toPdf()
+                                .get('pdf')
+                                .then((pdf) => {
+                                    const total = pdf.internal.getNumberOfPages();
+                                    if (total > 1) {
+                                        for (let p = total; p > 1; p--) {
+                                            pdf.deletePage(p);
+                                        }
+                                    }
+                                })
+                                .outputPdf('datauristring');
                         } finally {
                             element.classList.remove('gdrive-pdf-mode');
+                            zoomLevel.value = prevZoom;
                         }
 
                         let cleanBase64 = (pdfDataUri && pdfDataUri.indexOf(',') > -1) ? pdfDataUri.split(',')[1] : (pdfDataUri || '');
