@@ -43,8 +43,9 @@ function doPost(e) {
       });
     }
 
-    // Bersihkan prefix data uri jika ada
-    var cleanBase64 = base64Data.replace(/^data:application\/pdf;base64,/, "");
+    // Bersihkan prefix data uri jika ada (ambil data murni base64 setelah koma)
+    var cleanBase64 = base64Data.indexOf(",") > -1 ? base64Data.split(",")[1] : base64Data;
+    cleanBase64 = cleanBase64.replace(/\s/g, "");
     var decodedBlob = Utilities.base64Decode(cleanBase64);
     var pdfBlob = Utilities.newBlob(decodedBlob, "application/pdf", fileName);
 

@@ -1211,6 +1211,33 @@
                         </div>
                     </div>
 
+                    <!-- Tombol Uji Langsung Arsip Surat yang Tampil -->
+                    <div v-if="gdriveWebhookUrl" class="bg-gradient-to-r from-emerald-50 to-teal-50 p-3 rounded-xl border border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
+                        <div>
+                            <div class="font-bold text-emerald-900 text-xs flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                <span>Tes Kirim Surat Ini ke Google Drive</span>
+                            </div>
+                            <div class="text-[10px] text-emerald-700 mt-0.5">Kirim surat yang saat ini sedang Anda buat untuk memastikan folder & berkas PDF terbentuk di Drive Anda</div>
+                        </div>
+                        <button @click="archiveToGoogleDrive" :disabled="gdriveStatus === 'saving'" type="button" class="shrink-0 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-400 text-white rounded-lg font-bold text-xs shadow-xs flex items-center gap-1.5 transition">
+                            <svg v-if="gdriveStatus === 'saving'" class="animate-spin w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+                            <svg v-else class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            <span>{{ gdriveStatus === 'saving' ? 'Mengunggah...' : 'Arsipkan Surat Sekarang' }}</span>
+                        </button>
+                    </div>
+
+                    <!-- Tautan Berkas Terakhir yang Berhasil Diarsipkan -->
+                    <div v-if="gdriveLastFileUrl" class="p-3 bg-emerald-100/80 border border-emerald-300 rounded-xl text-xs text-emerald-950 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                        <div>
+                            <span class="font-bold text-emerald-900 block">✓ Berkas Berhasil Tersimpan!</span>
+                            <span class="text-[11px] text-emerald-700">{{ gdriveMessage }}</span>
+                        </div>
+                        <a :href="gdriveLastFileUrl" target="_blank" class="shrink-0 px-3 py-1 bg-white hover:bg-emerald-50 border border-emerald-400 rounded-lg font-bold text-xs text-emerald-800 flex items-center gap-1 shadow-2xs">
+                            Buka File di Drive &rarr;
+                        </a>
+                    </div>
+
                     <!-- Panduan Cepat 3 Langkah -->
                     <div class="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100 space-y-2.5">
                         <div class="font-bold text-indigo-950 text-xs flex items-center justify-between">
@@ -1673,7 +1700,8 @@ function doPost(e) {
       return createJsonResponse({ status: "error", message: "File PDF base64 tidak ditemukan." });
     }
 
-    var cleanBase64 = base64Data.replace(/^data:application\\/pdf;base64,/, "");
+    var cleanBase64 = base64Data.indexOf(",") > -1 ? base64Data.split(",")[1] : base64Data;
+    cleanBase64 = cleanBase64.replace(/\\s/g, "");
     var decodedBlob = Utilities.base64Decode(cleanBase64);
     var pdfBlob = Utilities.newBlob(decodedBlob, "application/pdf", fileName);
 
@@ -1847,11 +1875,12 @@ function createJsonResponse(data) {
                         };
 
                         const pdfDataUri = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+                        const cleanBase64 = (pdfDataUri && pdfDataUri.indexOf(',') > -1) ? pdfDataUri.split(',')[1] : pdfDataUri;
 
                         gdriveMessage.value = 'Mengunggah ke Folder: ' + yearName + ' / ' + monthName + '...';
 
                         const payload = {
-                            fileData: pdfDataUri,
+                            fileData: cleanBase64,
                             fileName: fileName,
                             year: yearName,
                             month: monthName,
