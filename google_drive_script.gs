@@ -162,13 +162,25 @@ function getOrCreateHistorySheet(rootFolder) {
   var spreadsheet;
 
   if (files.hasNext()) {
-    var file = files.next();
-    spreadsheet = SpreadsheetApp.openById(file.getId());
+    spreadsheet = SpreadsheetApp.openById(files.next().getId());
   } else {
-    spreadsheet = SpreadsheetApp.create(fileName);
-    var driveFile = DriveApp.getFileById(spreadsheet.getId());
-    rootFolder.addFile(driveFile);
-    DriveApp.getRootFolder().removeFile(driveFile);
+    // Cek apakah file sudah pernah ada di Drive utama
+    var rootFiles = DriveApp.getFilesByName(fileName);
+    if (rootFiles.hasNext()) {
+      var existingDriveFile = rootFiles.next();
+      try {
+        existingDriveFile.moveTo(rootFolder);
+      } catch (eM) {}
+      spreadsheet = SpreadsheetApp.openById(existingDriveFile.getId());
+    } else {
+      spreadsheet = SpreadsheetApp.create(fileName);
+      try {
+        var newDriveFile = DriveApp.getFileById(spreadsheet.getId());
+        newDriveFile.moveTo(rootFolder);
+      } catch (eMove) {
+        // Jika tidak bisa dipindahkan, spreadsheet tetap valid dan bisa diakses
+      }
+    }
   }
 
   var sheet = spreadsheet.getActiveSheet();

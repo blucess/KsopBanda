@@ -1954,10 +1954,18 @@ function getOrCreateHistorySheet(rootFolder) {
   if (files.hasNext()) {
     spreadsheet = SpreadsheetApp.openById(files.next().getId());
   } else {
-    spreadsheet = SpreadsheetApp.create(fileName);
-    var driveFile = DriveApp.getFileById(spreadsheet.getId());
-    rootFolder.addFile(driveFile);
-    DriveApp.getRootFolder().removeFile(driveFile);
+    var rootFiles = DriveApp.getFilesByName(fileName);
+    if (rootFiles.hasNext()) {
+      var existingDriveFile = rootFiles.next();
+      try { existingDriveFile.moveTo(rootFolder); } catch(eM) {}
+      spreadsheet = SpreadsheetApp.openById(existingDriveFile.getId());
+    } else {
+      spreadsheet = SpreadsheetApp.create(fileName);
+      try {
+        var newDriveFile = DriveApp.getFileById(spreadsheet.getId());
+        newDriveFile.moveTo(rootFolder);
+      } catch(eMove) {}
+    }
   }
 
   var sheet = spreadsheet.getActiveSheet();
