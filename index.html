@@ -1885,6 +1885,15 @@ function createJsonResponse(data) {
                     return months[now.getMonth()];
                 };
 
+                const defaultAppTitle = 'Sistem Otomasi Surat Persetujuan B/M Barang Berbahaya - KSOP Banda Naira (Format A4)';
+
+                const getDocumentFileName = (withExtension = false) => {
+                    const cleanNoSurat = (form.noSurat || 'Surat').replace(/[/\\?%*:|"<>]/g, '_').trim();
+                    const cleanShip = (form.namaKapal || '').replace(/[/\\?%*:|"<>]/g, '_').trim();
+                    const baseName = cleanShip ? `${cleanNoSurat}_${cleanShip}` : cleanNoSurat;
+                    return withExtension ? `${baseName}.pdf` : baseName;
+                };
+
                 const archiveToGoogleDrive = async () => {
                     let url = gdriveWebhookUrl.value ? gdriveWebhookUrl.value.trim().replace(/['"]/g, '') : '';
                     if (!url) return;
@@ -1905,9 +1914,7 @@ function createJsonResponse(data) {
 
                         const yearName = tahunSurat.value ? String(tahunSurat.value) : String(new Date().getFullYear());
                         const monthName = getMonthFolderName();
-                        const cleanNoSurat = (form.noSurat || 'Surat').replace(/[/\\\\?%*:|"<>]/g, '_');
-                        const cleanShip = (form.namaKapal || '').replace(/[/\\\\?%*:|"<>]/g, '_').trim();
-                        const fileName = cleanShip ? `${cleanNoSurat}_${cleanShip}.pdf` : `${cleanNoSurat}.pdf`;
+                        const fileName = getDocumentFileName(true);
 
                         gdriveMessage.value = 'Mengonversi lembar surat A4 ke PDF...';
 
@@ -2023,6 +2030,10 @@ function createJsonResponse(data) {
                         document.body.classList.add('mobile-print-fit');
                     }
 
+                    // Samakan nama berkas saat Cetak/Save as PDF dengan nama file Google Drive
+                    const docFileName = getDocumentFileName(false);
+                    document.title = docFileName;
+
                     // Otomatis kirim arsip PDF ke Google Drive di latar belakang jika URL aktif
                     if (gdriveWebhookUrl.value && gdriveAutoArchive.value) {
                         archiveToGoogleDrive();
@@ -2035,9 +2046,22 @@ function createJsonResponse(data) {
                         setTimeout(() => {
                             zoomLevel.value = prevZoom;
                             document.body.classList.remove('mobile-print-fit');
+                            setTimeout(() => {
+                                document.title = defaultAppTitle;
+                            }, 1000);
                         }, 800);
                     }, 120);
                 };
+
+                // Dukung juga shortcut Ctrl + P agar nama file tetap seragam
+                window.addEventListener('beforeprint', () => {
+                    document.title = getDocumentFileName(false);
+                });
+                window.addEventListener('afterprint', () => {
+                    setTimeout(() => {
+                        document.title = defaultAppTitle;
+                    }, 500);
+                });
 
                 return {
                     isSidebarCollapsed,
