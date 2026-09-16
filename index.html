@@ -1749,13 +1749,30 @@ function createJsonResponse(data) {
                 };
 
                 const testGDriveConnection = async () => {
-                    if (!gdriveWebhookUrl.value.trim()) {
+                    const rawUrl = gdriveWebhookUrl.value ? gdriveWebhookUrl.value.trim() : '';
+                    if (!rawUrl) {
                         alert('Silakan masukkan Web App URL Google Script terlebih dahulu!');
                         return;
                     }
+
+                    // Deteksi jika pengguna menempelkan link hasil redirect browser
+                    if (rawUrl.includes('googleusercontent.com')) {
+                        alert('⚠️ PERHATIAN: URL SALAH!\n\nAnda menempelkan link hasil pengalihan (redirect) browser.\n\nMohon salin "Web app URL" ASLI dari Google Script yang berformat:\nhttps://script.google.com/macros/s/.../exec\n\nCara melihat URL asli:\nBuka script.google.com > Klik Deploy > Manage deployments > Salin Web app URL.');
+                        return;
+                    }
+
+                    // Deteksi jika menempelkan link halaman editor
+                    if (rawUrl.includes('/edit') || rawUrl.includes('/home/projects')) {
+                        alert('⚠️ PERHATIAN: URL EDITOR!\n\nAnda menempelkan link halaman editor skrip, bukan Web App URL.\n\nSilakan klik tombol biru "Deploy" > "New deployment" atau "Manage deployments", lalu salin "Web app URL" yang berakhiran "/exec".');
+                        return;
+                    }
+
                     gdriveTesting.value = true;
                     try {
-                        const res = await fetch(gdriveWebhookUrl.value.trim(), { method: 'GET' });
+                        const res = await fetch(rawUrl, { 
+                            method: 'GET',
+                            redirect: 'follow'
+                        });
                         const data = await res.json();
                         if (data && data.status === 'ok') {
                             alert('✓ KONEKSI BERHASIL!\n\nLayanan Google Apps Script merespons:\n"' + data.message + '"');
@@ -1763,7 +1780,12 @@ function createJsonResponse(data) {
                             alert('Terhubung, namun respon tidak sesuai:\n' + JSON.stringify(data));
                         }
                     } catch(e) {
-                        alert('Gagal terhubung ke Google Apps Script!\n\nPastikan URL sudah benar dan opsi "Who has access" disetel ke "Anyone".\n\nDetail: ' + e.message);
+                        const isFileProtocol = typeof window !== 'undefined' && window.location && window.location.protocol === 'file:';
+                        let hint = '';
+                        if (isFileProtocol) {
+                            hint = '\n\n💡 CATATAN KHUSUS:\nAnda saat ini membuka file secara langsung (file://). Kebijakan keamanan browser memblokir koneksi API eksternal dari file lokal.\n\nSolusi: Buka aplikasi melalui server lokal (jalankan buka_di_hp.bat lalu buka http://localhost:3000) atau buka via link GitHub Pages Anda.';
+                        }
+                        alert('Gagal terhubung ke Google Apps Script!\n\nDetail: ' + e.message + '\n\nPastikan:\n1. URL berformat https://script.google.com/macros/s/.../exec\n2. Pada saat Deploy di Google Script, "Who has access" disetel ke "Anyone"' + hint);
                     } finally {
                         gdriveTesting.value = false;
                     }
@@ -1838,6 +1860,7 @@ function createJsonResponse(data) {
 
                         const response = await fetch(url, {
                             method: 'POST',
+                            redirect: 'follow',
                             body: JSON.stringify(payload),
                             headers: {
                                 'Content-Type': 'text/plain;charset=utf-8'
