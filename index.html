@@ -251,23 +251,11 @@
                     <span class="font-medium">Format: <b>A4 Resmi (1 Lembar)</b></span>
                 </div>
 
-                <!-- Tombol Riwayat Surat -->
-                <button @click="openHistoryModal" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-semibold border border-slate-700 transition inline-flex items-center gap-1.5" title="Riwayat Surat (Database Online Google Sheets)">
+                <!-- Tombol Riwayat Cetak Surat -->
+                <button @click="openHistoryModal" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-semibold border border-slate-700 transition inline-flex items-center gap-1.5" title="Riwayat Cetak Surat (Database Online Google Sheets)">
                     <svg class="w-3.5 h-3.5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span>Riwayat ({{ cloudHistoryList.length }})</span>
-                    <span v-if="gdriveWebhookUrl" class="w-1.5 h-1.5 rounded-full bg-sky-400" title="Database Online Terhubung"></span>
-                </button>
-
-
-                <!-- Tombol Pengaturan Google Drive -->
-                <button @click="showGDriveModal = true" class="px-2.5 py-1 rounded text-xs font-semibold border transition inline-flex items-center gap-1.5"
-                        :class="gdriveWebhookUrl ? 'bg-emerald-950/70 border-emerald-600/60 text-emerald-300 hover:bg-emerald-900/80' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'"
-                        title="Pengaturan Arsip Otomatis Google Drive">
-                    <svg class="w-3.5 h-3.5" :class="gdriveWebhookUrl ? 'text-emerald-400' : 'text-slate-400'" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
-                    </svg>
-                    <span>G-Drive</span>
-                    <span v-if="gdriveWebhookUrl" class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <span>Riwayat Cetak ({{ cloudHistoryList.length }})</span>
+                    <span v-if="gdriveWebhookUrl" class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Database Online Terhubung"></span>
                 </button>
 
                 <!-- Tombol Cetak / PDF -->
@@ -588,12 +576,7 @@
                 <!-- Footer Panel -->
                 <div class="p-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
                     <span>Otomasi Surat KSOP v2.2</span>
-                    <button @click="saveToHistory" class="text-blue-600 hover:text-blue-800 font-semibold inline-flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
-                        </svg>
-                        Simpan ke Riwayat
-                    </button>
+                    <span class="text-[11px] text-slate-400">Riwayat otomatis tercatat saat Cetak</span>
                 </div>
 
             </div>
@@ -1054,15 +1037,15 @@
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
-                                <h3 class="font-bold text-slate-800 text-sm">Riwayat Surat Persetujuan</h3>
+                                <h3 class="font-bold text-slate-800 text-sm">Riwayat Cetak Surat</h3>
                                 <span v-if="gdriveWebhookUrl" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online (Google Sheets)
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Cloud Aktif
                                 </span>
                                 <span v-else class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                                    Belum Terhubung
+                                    Offline
                                 </span>
                             </div>
-                            <p class="text-[11px] text-slate-500">Database online terpusat di Google Sheets KSOP Banda Naira</p>
+                            <p class="text-[11px] text-slate-500">Daftar seluruh surat persetujuan yang telah dicetak & diarsipkan</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
@@ -1161,9 +1144,15 @@
                         <span v-if="lastCloudSyncTime" class="text-emerald-700 font-semibold">✓ Sinkron terakhir: {{ lastCloudSyncTime }}</span>
                         <span v-else>💡 Klik "Muat" pada surat untuk mengisi formulir secara otomatis.</span>
                     </div>
-                    <button @click="showHistoryModal = false" type="button" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold ml-auto transition">
-                        Tutup
-                    </button>
+                    <div class="flex items-center gap-2 ml-auto">
+                        <button @click="showGDriveModal = true" type="button" class="px-2.5 py-1.5 text-slate-500 hover:text-slate-800 text-[11px] font-medium transition flex items-center gap-1" title="Konfigurasi Google Drive">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span>Pengaturan Cloud</span>
+                        </button>
+                        <button @click="showHistoryModal = false" type="button" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">
+                            Tutup
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2358,6 +2347,31 @@ function createJsonResponse(data) {
                     // Samakan nama berkas saat Cetak/Save as PDF dengan nama file Google Drive
                     const docFileName = getDocumentFileName(false);
                     document.title = docFileName;
+
+                    // Otomatis catat ke Riwayat Cetak seketika
+                    const now = new Date();
+                    const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const currentForm = JSON.parse(JSON.stringify(form));
+                    const printHistoryItem = {
+                        id: 'KSOP-' + now.getTime(),
+                        savedAt: dateStr,
+                        noSurat: currentForm.noSurat || docFileName,
+                        namaKapal: currentForm.namaKapal || '-',
+                        agenKapal: currentForm.agenKapal || '-',
+                        rincian: currentForm.rincian || '-',
+                        fileUrl: null,
+                        form: currentForm,
+                        source: 'cloud'
+                    };
+                    const exIdx = cloudHistoryList.value.findIndex(item => item.noSurat && item.noSurat.trim() === printHistoryItem.noSurat.trim());
+                    if (exIdx >= 0) {
+                        cloudHistoryList.value[exIdx] = { ...cloudHistoryList.value[exIdx], ...printHistoryItem };
+                    } else {
+                        cloudHistoryList.value.unshift(printHistoryItem);
+                    }
+                    try {
+                        localStorage.setItem('ksop_online_history_cache', JSON.stringify(cloudHistoryList.value));
+                    } catch(e) {}
 
                     // Otomatis kirim arsip PDF ke Google Drive di latar belakang jika URL aktif
                     if (gdriveWebhookUrl.value && gdriveAutoArchive.value) {
