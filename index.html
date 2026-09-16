@@ -1519,8 +1519,19 @@
                     rincian: ''
                 });
 
+                const getCachedHistory = () => {
+                    try {
+                        const cached = localStorage.getItem('ksop_online_history_cache');
+                        if (cached) {
+                            const arr = JSON.parse(cached);
+                            if (Array.isArray(arr)) return arr;
+                        }
+                    } catch(e) {}
+                    return [];
+                };
+
                 const savedPresets = ref([]);
-                const cloudHistoryList = ref([]);
+                const cloudHistoryList = ref(getCachedHistory());
                 const loadingCloudHistory = ref(false);
                 const historySearchQuery = ref('');
                 const lastCloudSyncTime = ref('');
@@ -1718,8 +1729,16 @@
                         }
 
                         if (json && json.status === 'success' && Array.isArray(json.data)) {
-                            cloudHistoryList.value = json.data;
+                            // Jika ada data dari Google Sheets, padukan dengan data lokal
+                            if (json.data.length > 0) {
+                                const cloudNos = new Set(json.data.map(d => (d.noSurat || '').trim()));
+                                const pending = (cloudHistoryList.value || []).filter(item => item.noSurat && !cloudNos.has(item.noSurat.trim()));
+                                cloudHistoryList.value = [...json.data, ...pending];
+                            }
                             lastCloudSyncTime.value = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                            try {
+                                localStorage.setItem('ksop_online_history_cache', JSON.stringify(cloudHistoryList.value));
+                            } catch(e) {}
                         }
                     } catch(err) {
                         console.warn('Gagal memuat riwayat online:', err);
@@ -1736,15 +1755,39 @@
                 };
 
                 const saveToHistory = async () => {
+                    const now = new Date();
+                    const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const currentForm = JSON.parse(JSON.stringify(form));
+                    const newHistoryItem = {
+                        id: 'KSOP-' + now.getTime(),
+                        savedAt: dateStr,
+                        noSurat: currentForm.noSurat || 'Tanpa Nomor',
+                        namaKapal: currentForm.namaKapal || '-',
+                        agenKapal: currentForm.agenKapal || '-',
+                        rincian: currentForm.rincian || '-',
+                        fileUrl: null,
+                        form: currentForm,
+                        source: 'cloud'
+                    };
+
+                    // 1. Langsung tambahkan ke cloudHistoryList agar counter di tombol "Riwayat (X)" langsung bertambah dan muncul seketika di daftar
+                    const existingIdx = cloudHistoryList.value.findIndex(item => item.noSurat && item.noSurat.trim() === newHistoryItem.noSurat.trim());
+                    if (existingIdx >= 0) {
+                        cloudHistoryList.value[existingIdx] = newHistoryItem;
+                    } else {
+                        cloudHistoryList.value.unshift(newHistoryItem);
+                    }
+
+                    try {
+                        localStorage.setItem('ksop_online_history_cache', JSON.stringify(cloudHistoryList.value));
+                    } catch(e) {}
+
                     const url = gdriveWebhookUrl.value ? gdriveWebhookUrl.value.trim().replace(/['"]/g, '') : '';
                     if (!url) {
-                        if (confirm('Database Riwayat Online belum terhubung.\n\nUntuk menyimpan riwayat surat ke Google Sheets, silakan masukkan Web App URL Google Script terlebih dahulu.\n\nBuka Pengaturan G-Drive sekarang?')) {
-                            showGDriveModal.value = true;
-                        }
+                        alert('✓ Surat berhasil dicatat ke Riwayat!\n\n💡 Catatan: Google Apps Script belum terhubung. Untuk mencatat otomatis ke Google Spreadsheet online, silakan pasang Web App URL di menu G-Drive.');
                         return;
                     }
 
-                    const currentForm = JSON.parse(JSON.stringify(form));
                     try {
                         const res = await fetch(url, {
                             method: 'POST',
@@ -1757,11 +1800,24 @@
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                         });
                         const resText = await res.text();
-                        alert('✓ Surat persetujuan berhasil disimpan ke Database Online (Google Sheets)!');
-                        fetchCloudHistory();
+                        let resJson = null;
+                        try {
+                            resJson = JSON.parse(resText);
+                        } catch(pe) {}
+
+                        if (resJson && resJson.status === 'success') {
+                            alert('✓ Surat persetujuan berhasil disimpan ke Database Online (Google Sheets)!');
+                            fetchCloudHistory();
+                        } else if (resJson && (resJson.message === 'File PDF base64 tidak ditemukan.' || resJson.message === 'Data kiriman kosong atau tidak valid.')) {
+                            // Skrip di Google Script masih versi LAMA
+                            alert('✓ Surat berhasil disimpan ke Riwayat aplikasi!\n\n⚠️ PEMBERITAHUAN PENTING:\nGoogle Apps Script Anda masih menjalankan skrip versi lama (belum di-deploy ulang dengan kode terbaru Database Spreadsheet).\n\nCara Memperbarui:\n1. Buka tab script.google.com Anda\n2. Klik Deploy > Manage deployments\n3. Klik Edit (Pensil) > Pada Version pilih "New version"\n4. Klik Deploy.');
+                        } else {
+                            alert('✓ Surat berhasil disimpan ke Database Riwayat!');
+                            fetchCloudHistory();
+                        }
                     } catch (err) {
                         console.warn('Sync cloud error:', err);
-                        alert('Gagal menyimpan ke Database Online: ' + (err.message || err.toString()));
+                        alert('✓ Surat berhasil dicatat di Riwayat aplikasi!\n\n(Catatan: Sinkronisasi ke Google Sheets tertunda: ' + (err.message || err.toString()) + ')');
                     }
                 };
 
@@ -1778,6 +1834,11 @@
                 const deleteHistoryItem = async (item) => {
                     if (!confirm(`Hapus surat "${item.namaKapal || item.noSurat}" dari Database Online?`)) return;
 
+                    cloudHistoryList.value = cloudHistoryList.value.filter(c => c.id !== item.id && c.noSurat !== item.noSurat);
+                    try {
+                        localStorage.setItem('ksop_online_history_cache', JSON.stringify(cloudHistoryList.value));
+                    } catch(e) {}
+
                     const url = gdriveWebhookUrl.value ? gdriveWebhookUrl.value.trim().replace(/['"]/g, '') : '';
                     if (url && item.id) {
                         try {
@@ -1793,7 +1854,6 @@
                             }).catch(e => console.warn(e));
                         } catch(e) {}
                     }
-                    cloudHistoryList.value = cloudHistoryList.value.filter(c => c.id !== item.id);
                 };
 
                 const resetForm = () => {
@@ -2304,6 +2364,31 @@ function createJsonResponse(data) {
                             gdriveStatus.value = 'success';
                             gdriveMessage.value = 'Tersimpan di: ' + (result.folderPath || (yearName + ' > ' + monthName)) + ' (' + fileName + ')';
                             gdriveLastFileUrl.value = result.fileUrl || '';
+
+                            // Catat atau perbarui riwayat lokal dengan URL file PDF Google Drive
+                            const now = new Date();
+                            const dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                            const currentForm = JSON.parse(JSON.stringify(form));
+                            const historyItem = {
+                                id: result.historyId || ('KSOP-' + now.getTime()),
+                                savedAt: dateStr,
+                                noSurat: currentForm.noSurat || fileName,
+                                namaKapal: currentForm.namaKapal || '-',
+                                agenKapal: currentForm.agenKapal || '-',
+                                rincian: currentForm.rincian || '-',
+                                fileUrl: result.fileUrl || '',
+                                form: currentForm,
+                                source: 'cloud'
+                            };
+                            const exIdx = cloudHistoryList.value.findIndex(item => item.noSurat && item.noSurat.trim() === historyItem.noSurat.trim());
+                            if (exIdx >= 0) {
+                                cloudHistoryList.value[exIdx] = { ...cloudHistoryList.value[exIdx], ...historyItem };
+                            } else {
+                                cloudHistoryList.value.unshift(historyItem);
+                            }
+                            try {
+                                localStorage.setItem('ksop_online_history_cache', JSON.stringify(cloudHistoryList.value));
+                            } catch(e) {}
 
                             // Otomatis sinkronkan riwayat cloud terbaru
                             fetchCloudHistory();
