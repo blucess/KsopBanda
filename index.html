@@ -50,24 +50,15 @@
             line-height: 1.18;
         }
 
-        /* Mode Khusus Ekspor PDF Google Drive: Pas Tepat 1 Lembar A4 Utuh & Nyaman (Tanpa Terpotong) */
+        /* Mode Khusus Ekspor PDF Google Drive: 100% Sama Persis dengan Preview */
         .gdrive-pdf-mode {
             box-shadow: none !important;
-            margin: 0 !important;
-            padding: 5mm 13mm 8mm 13mm !important;
-            min-height: 0 !important;
-            max-height: none !important;
-            height: auto !important;
-            overflow: visible !important;
-        }
-        .gdrive-pdf-mode .doc-section {
-            margin-bottom: 5pt !important;
-        }
-        .gdrive-pdf-mode .signature-space {
-            height: 44pt !important;
-        }
-        .gdrive-pdf-mode .signature-section {
-            margin-top: 4pt !important;
+            margin: 0 auto !important;
+            width: 210mm !important;
+            max-width: 210mm !important;
+            min-height: 297mm !important;
+            padding: 5mm 13mm 12mm 13mm !important;
+            box-sizing: border-box !important;
         }
 
         /* Garis Dobel Pembatas Kop Surat Resmi Kemenhub */
@@ -81,23 +72,30 @@
             margin-bottom: 6px;
         }
 
-        /* Jarak Antar Paragraf Proporsional & Elegan Sesuai Format Resmi (Ada Space Jelas Antar Paragraf) */
+        /* Jarak Antar Paragraf Proporsional & Elegan Sesuai Format Resmi */
         .doc-section {
             margin-bottom: 8pt;
         }
 
-        /* Mode Cetak Bersih Langsung dari Browser (Pasti 1 Lembar Pas di HP & PC) */
+        /* Bagian Tanda Tangan: Posisi Pas Tepat 1 Lembar A4 & NIP Utuh */
+        .signature-section {
+            margin-top: 3mm;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+        /* Mode Cetak Bersih Langsung dari Browser (100% Presisi Pas Tepat 1 Lembar A4 & NIP Utuh) */
         @media print {
             @page {
-                size: A4 portrait;
-                margin: 5mm 10mm 4mm 10mm;
+                size: 210mm 297mm;
+                margin: 0 !important;
             }
             html, body {
                 background: white !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                height: 100% !important;
-                overflow: visible !important;
+                width: 210mm !important;
+                height: auto !important;
                 -webkit-text-size-adjust: 100% !important;
                 text-size-adjust: 100% !important;
                 -webkit-print-color-adjust: exact !important;
@@ -116,7 +114,7 @@
                 margin: 0 !important;
                 background: transparent !important;
                 transform: none !important;
-                width: 100% !important;
+                width: 210mm !important;
             }
             /* Sembunyikan SEMUA elemen UI, header, tombol, tab HP & modal saat mencetak */
             .no-print,
@@ -141,72 +139,23 @@
             .a4-paper {
                 box-shadow: none !important;
                 margin: 0 auto !important;
-                padding: 0 !important;
-                width: 100% !important;
-                max-width: 100% !important;
-                min-height: 0 !important;
+                padding: 4mm 13mm 8mm 13mm !important;
+                width: 210mm !important;
+                max-width: 210mm !important;
                 height: auto !important;
+                min-height: 0 !important;
+                box-sizing: border-box !important;
                 overflow: visible !important;
                 page-break-after: avoid !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 font-size: 11pt !important;
-                line-height: 1.16 !important;
-            }
-            /* Jaga proporsi teks & tabel tetap elegan sesuai template resmi */
-            .a4-paper table {
-                font-size: inherit !important;
-                line-height: 1.16 !important;
-            }
-            .a4-paper p, 
-            .a4-paper div {
-                line-height: 1.16 !important;
-            }
-            .doc-section {
-                margin-bottom: 7.5pt !important;
-            }
-            .kop-divider-thick {
-                margin-top: 2px !important;
-                border-top-width: 2.25pt !important;
-            }
-            .kop-divider-thin {
-                margin-top: 1.5px !important;
-                margin-bottom: 5px !important;
-                border-top-width: 0.75pt !important;
+                line-height: 1.15 !important;
             }
             .signature-section {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-                margin-top: 7.5pt !important;
-            }
-            /* Jarak Ruang Tanda Tangan Sangat Lega & Berwibawa (~2.2 cm) Sesuai Permintaan */
-            .signature-space {
-                height: 60pt !important;
-            }
-            .kop-logo {
-                width: 76px !important;
-                height: 82px !important;
-            }
-
-            /* Penyesuaian KHUSUS jika dicetak dari HP agar pas 1 lembar (PC 100% tidak terpengaruh) */
-            body.mobile-print-fit .a4-paper {
-                font-size: 10.3pt !important;
-                line-height: 1.13 !important;
-            }
-            body.mobile-print-fit .a4-paper table,
-            body.mobile-print-fit .a4-paper p,
-            body.mobile-print-fit .a4-paper div {
-                line-height: 1.13 !important;
-            }
-            body.mobile-print-fit .doc-section {
-                margin-bottom: 5pt !important;
-            }
-            body.mobile-print-fit .signature-space {
-                height: 46pt !important;
-            }
-            body.mobile-print-fit .kop-logo {
-                width: 70px !important;
-                height: 76px !important;
+                page-break-after: avoid !important;
             }
         }
 
@@ -561,6 +510,50 @@
                             <label class="block text-[11px] font-semibold text-slate-600 mb-1">NIP Kepala Kantor</label>
                             <input type="text" v-model="form.nip" class="w-full text-xs rounded-lg border border-slate-300 p-2 font-mono font-medium focus:ring-1 focus:ring-blue-500 outline-none">
                         </div>
+
+                        <!-- Pengaturan Posisi & Jarak TTD ke Bawah (Pas Tepat 1 Lembar A4 & NIP Utuh) -->
+                        <div class="pt-2 border-t border-slate-100 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-[11px] font-semibold text-slate-700 flex items-center gap-1">
+                                    <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+                                    <span>Posisi TTD ke Bawah</span>
+                                </label>
+                                <span class="text-[11px] font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                                    +{{ ttdMarginTop }} mm
+                                </span>
+                            </div>
+                            
+                            <!-- Slider Range Margin TTD (Aman 0 - 8 mm agar tetap 1 lembar & NIP tidak terpotong) -->
+                            <input type="range" min="0" max="8" step="1" v-model.number="ttdMarginTop" 
+                                   @input="saveTtdSettings"
+                                   class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                   title="Geser untuk mengatur posisi tanda tangan (0-8 mm aman 1 lembar)">
+                            
+                            <!-- Tombol Preset Cepat -->
+                            <div class="grid grid-cols-3 gap-1.5 pt-0.5">
+                                <button type="button" @click="setTtdMargin(1)" 
+                                        :class="ttdMarginTop === 1 ? 'bg-blue-600 text-white font-bold shadow-xs border-blue-600' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'" 
+                                        class="py-1 px-1 text-[10.5px] rounded border text-center transition">
+                                    Rapat (+1mm)
+                                </button>
+                                <button type="button" @click="setTtdMargin(3)" 
+                                        :class="ttdMarginTop === 3 ? 'bg-blue-600 text-white font-bold shadow-xs border-blue-600' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'" 
+                                        class="py-1 px-1 text-[10.5px] rounded border text-center transition"
+                                        title="Posisi rekomendasi seimbang, NIP utuh dan pasti 1 lembar">
+                                    Pas (+3mm) ⭐
+                                </button>
+                                <button type="button" @click="setTtdMargin(6)" 
+                                        :class="ttdMarginTop === 6 ? 'bg-blue-600 text-white font-bold shadow-xs border-blue-600' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 border-slate-200'" 
+                                        class="py-1 px-1 text-[10.5px] rounded border text-center transition"
+                                        title="Posisi turun maksimal yang aman">
+                                    Bawah (+6mm)
+                                </button>
+                            </div>
+                            <p class="text-[10px] text-emerald-600 font-medium leading-tight flex items-center gap-1">
+                                <svg class="w-3 h-3 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                <span>Pasti pas 1 lembar A4 & tulisan NIP utuh tidak terpotong.</span>
+                            </p>
+                        </div>
                     </div>
 
                     <!-- Tombol Lanjut ke Pratinjau Surat Khusus Mobile -->
@@ -836,7 +829,7 @@
                         </div>
 
                         <!-- BAGIAN TANDA TANGAN (LEGA UNTUK TANDA TANGAN & STEMPEL CAP RESMI) -->
-                        <div class="mt-2 flex justify-end text-[11pt] signature-section">
+                        <div :style="{ marginTop: ttdMarginTop + 'mm' }" class="flex justify-end text-[11pt] signature-section transition-all duration-150">
                             <div class="w-[330px]">
                                 <table class="w-full border-collapse mb-1">
                                     <tr>
@@ -859,13 +852,13 @@
                                 </div>
 
                                 <!-- Ruang Tanda Tangan Sangat Cukup (Persis 6 Empty Lines di Template Asli = ~68pt / 2.5 cm) -->
-                                <div class="h-[62pt] signature-space"></div>
+                                <div :style="{ height: ttdSpaceHeight + 'pt' }" class="signature-space"></div>
 
                                 <div class="text-center">
                                     <div>
                                         <span class="font-bold uppercase text-[12pt] inline-block border-b border-black pb-0.5 leading-tight">{{ form.kepalaKantor }}</span>
                                     </div>
-                                    <div class="font-bold text-[11pt] mt-1.5 leading-tight">NIP: {{ form.nip }}</div>
+                                    <div class="font-bold text-[11pt] mt-1.5 leading-tight whitespace-nowrap">NIP: {{ form.nip }}</div>
                                 </div>
                             </div>
                         </div>
@@ -1049,9 +1042,9 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2">
-                        <button @click="resetHistoryToDefaultSeeds" type="button" class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition" title="Muat ulang 10 riwayat contoh standar KSOP Banda Naira">
-                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                            <span>10 Contoh KSOP</span>
+                        <button v-if="cloudHistoryList.length > 0" @click="clearLocalHistory" type="button" class="px-2.5 py-1 bg-white hover:bg-rose-50 border border-slate-300 hover:border-rose-300 rounded-lg text-xs font-semibold text-slate-600 hover:text-rose-600 flex items-center gap-1.5 shadow-2xs transition" title="Kosongkan daftar riwayat lokal">
+                            <svg class="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <span>Kosongkan Riwayat</span>
                         </button>
                         <button v-if="gdriveWebhookUrl" @click="fetchCloudHistory" :disabled="loadingCloudHistory" type="button" class="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg text-xs font-semibold text-slate-700 flex items-center gap-1.5 shadow-2xs transition">
                             <svg :class="{'animate-spin text-blue-600': loadingCloudHistory}" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
@@ -1428,290 +1421,6 @@
             }
         ];
 
-        // 10 Data Benih Riwayat Cetak Resmi KSOP Banda Naira
-        const defaultHistorySeeds = [
-            {
-                id: 'KSOP-SEED-01',
-                savedAt: '03 Sep 2026 09:15',
-                noSurat: 'KL.206/01/IX/KSOP.BND-2026',
-                namaKapal: 'SPOB AQSHA DEWA',
-                agenKapal: 'PT. SPECTRA TIRTASEGARA LINE',
-                rincian: 'Untuk melakukan pembongkaran BBM jenis Pertamax sebanyak 120 TON',
-                fileUrl: null,
-                source: 'cloud',
-                form: {
-                    noSurat: 'KL.206/01/IX/KSOP.BND-2026',
-                    tempat: 'BANDA NAIRA',
-                    tanggal: '03 SEPTEMBER 2026',
-                    namaPemohon: 'PT. SPECTRA TIRTASEGARA LINE',
-                    noPermohonan: 'SPPPB / 1 / IX / PSTSL.2026',
-                    perihalPermohonan: 'Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya',
-                    namaKapal: 'SPOB AQSHA DEWA',
-                    jenisKapal: 'SPOB',
-                    gt: '185 GT',
-                    loa: '34,62 M',
-                    nahkoda: 'EDUARD WATTILETE',
-                    agenKapal: 'PT. SPECTRA TIRTASEGARA LINE',
-                    rincian: 'Untuk melakukan pembongkaran BBM jenis Pertamax sebanyak 120 TON',
-                    tglMulai: '03 September 2026',
-                    kepalaKantor: 'RUSLI MAHMUD, S.T.',
-                    nip: '19690620 199903 1 001'
-                }
-            },
-            {
-                id: 'KSOP-SEED-02',
-                savedAt: '04 Sep 2026 10:30',
-                noSurat: 'KL.206/02/IX/KSOP.BND-2026',
-                namaKapal: 'SPOB PATRIOT NUSANTARA',
-                agenKapal: 'PT. PELAYARAN BANDA SAMUDERA',
-                rincian: 'Untuk melakukan pembongkaran BBM jenis Solar / Biosolar sebanyak 180 TON',
-                fileUrl: null,
-                source: 'cloud',
-                form: {
-                    noSurat: 'KL.206/02/IX/KSOP.BND-2026',
-                    tempat: 'BANDA NAIRA',
-                    tanggal: '04 SEPTEMBER 2026',
-                    namaPemohon: 'PT. PELAYARAN BANDA SAMUDERA',
-                    noPermohonan: 'PBS/BM/09/2026',
-                    perihalPermohonan: 'Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya',
-                    namaKapal: 'SPOB PATRIOT NUSANTARA',
-                    jenisKapal: 'SPOB',
-                    gt: '210 GT',
-                    loa: '38,50 M',
-                    nahkoda: 'M. HUSSEIN',
-                    agenKapal: 'PT. PELAYARAN BANDA SAMUDERA',
-                    rincian: 'Untuk melakukan pembongkaran BBM jenis Solar / Biosolar sebanyak 180 TON',
-                    tglMulai: '04 September 2026',
-                    kepalaKantor: 'RUSLI MAHMUD, S.T.',
-                    nip: '19690620 199903 1 001'
-                }
-            },
-            {
-                id: 'KSOP-SEED-03',
-                savedAt: '05 Sep 2026 14:20',
-                noSurat: 'KL.206/03/IX/KSOP.BND-2026',
-                namaKapal: 'MT. PANDU PERSADA',
-                agenKapal: 'PT. SAMUDRA JAYA ENERGI',
-                rincian: 'Untuk melakukan pembongkaran BBM jenis Pertalite sebanyak 150 TON',
-                fileUrl: null,
-                source: 'cloud',
-                form: {
-                    noSurat: 'KL.206/03/IX/KSOP.BND-2026',
-                    tempat: 'BANDA NAIRA',
-                    tanggal: '05 SEPTEMBER 2026',
-                    namaPemohon: 'PT. SAMUDRA JAYA ENERGI',
-                    noPermohonan: '014/SJE-BND/IX/2026',
-                    perihalPermohonan: 'Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya',
-                    namaKapal: 'MT. PANDU PERSADA',
-                    jenisKapal: 'MT',
-                    gt: '245 GT',
-                    loa: '42,10 M',
-                    nahkoda: 'HENDRA WIJAYA',
-                    agenKapal: 'PT. SAMUDRA JAYA ENERGI',
-                    rincian: 'Untuk melakukan pembongkaran BBM jenis Pertalite sebanyak 150 TON',
-                    tglMulai: '05 September 2026',
-                    kepalaKantor: 'RUSLI MAHMUD, S.T.',
-                    nip: '19690620 199903 1 001'
-                }
-            },
-            {
-                id: 'KSOP-SEED-04',
-                savedAt: '06 Sep 2026 11:45',
-                noSurat: 'KL.206/04/IX/KSOP.BND-2026',
-                namaKapal: 'KM. BANDA SEJAHTERA',
-                agenKapal: 'PT. BANDA RAYA LINES',
-                rincian: 'Untuk melakukan pemuatan BBM jenis Minyak Tanah sebanyak 90 TON',
-                fileUrl: null,
-                source: 'cloud',
-                form: {
-                    noSurat: 'KL.206/04/IX/KSOP.BND-2026',
-                    tempat: 'BANDA NAIRA',
-                    tanggal: '06 SEPTEMBER 2026',
-                    namaPemohon: 'PT. BANDA RAYA LINES',
-                    noPermohonan: 'BRL/BND/045/IX/2026',
-                    perihalPermohonan: 'Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya',
-                    namaKapal: 'KM. BANDA SEJAHTERA',
-                    jenisKapal: 'KM',
-                    gt: '160 GT',
-                    loa: '31,20 M',
-                    nahkoda: 'LA ODE RAHMAN',
-                    agenKapal: 'PT. BANDA RAYA LINES',
-                    rincian: 'Untuk melakukan pemuatan BBM jenis Minyak Tanah sebanyak 90 TON',
-                    tglMulai: '06 September 2026',
-                    kepalaKantor: 'RUSLI MAHMUD, S.T.',
-                    nip: '19690620 199903 1 001'
-                }
-            },
-            {
-                id: 'KSOP-SEED-05',
-                savedAt: '07 Sep 2026 13:10',
-                noSurat: 'KL.206/05/IX/KSOP.BND-2026',
-                namaKapal: 'SPOB ALKEN PESONA',
-                agenKapal: 'PT. ALKEN BERINGIN SEJAHTERA',
-                rincian: 'Untuk melakukan pembongkaran BBM jenis Dexlite sebanyak 80 TON',
-                fileUrl: null,
-                source: 'cloud',
-                form: {
-                    noSurat: 'KL.206/05/IX/KSOP.BND-2026',
-                    tempat: 'BANDA NAIRA',
-                    tanggal: '07 SEPTEMBER 2026',
-                    namaPemohon: 'PT. ALKEN BERINGIN SEJAHTERA',
-                    noPermohonan: 'ABS/088/SP-BM/IX/2026',
-                    perihalPermohonan: 'Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya',
-                    namaKapal: 'SPOB ALKEN PESONA',
-                    jenisKapal: 'SPOB',
-                    gt: '195 GT',
-                    loa: '36,80 M',
-                    nahkoda: 'YOHANIS RUMAHORBO',
-                    agenKapal: 'PT. ALKEN BERINGIN SEJAHTERA',
-                    rincian: 'Untuk melakukan pembongkaran BBM jenis Dexlite sebanyak 80 TON',
-                    tglMulai: '07 September 2026',
-                    kepalaKantor: 'RUSLI MAHMUD, S.T.',
-                    nip: '19690620 199903 1 001'
-                }
-            },
-            {
-                id: 'KSOP-SEED-06',
-                savedAt: '08 Sep 2026 15:40',
-                noSurat: 'KL.206/06/IX/KSOP.BND-2026',
-                namaKapal: 'MT. SAMUDRA BINA',
-                agenKapal: 'PT. BAHARI NUSANTARA GEMILANG',
-                rincian: 'Untuk melakukan pembongkaran BBM jenis Pertamax sebanyak 200 TON',
-                fileUrl: null,
-                source: 'cloud',
-                form: {
-                    noSurat: 'KL.206/06/IX/KSOP.BND-2026',
-                    tempat: 'BANDA NAIRA',
-                    tanggal: '08 SEPTEMBER 2026',
-                    namaPemohon: 'PT. BAHARI NUSANTARA GEMILANG',
-                    noPermohonan: 'BNG/NAIRA/IX/021/2026',
-                    perihalPermohonan: 'Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya',
-                    namaKapal: 'MT. SAMUDRA BINA',
-                    jenisKapal: 'MT',
-                    gt: '280 GT',
-                    loa: '45,50 M',
-                    nahkoda: 'BAMBANG SUTRISNO',
-                    agenKapal: 'PT. BAHARI NUSANTARA GEMILANG',
-                    rincian: 'Untuk melakukan pembongkaran BBM jenis Pertamax sebanyak 200 TON',
-                    tglMulai: '08 September 2026',
-                    kepalaKantor: 'RUSLI MAHMUD, S.T.',
-                    nip: '19690620 199903 1 001'
-                }
-            },
-            {
-                id: 'KSOP-SEED-07',
-                savedAt: '09 Sep 2026 09:25',
-                noSurat: 'KL.206/07/IX/KSOP.BND-2026',
-                namaKapal: 'SPOB TRANS PACIFIC',
-                agenKapal: 'PT. TRANS PACIFIC MARINE',
-                rincian: 'Untuk melakukan pembongkaran BBM jenis Solar sebanyak 140 TON',
-                fileUrl: null,
-                source: 'cloud',
-                form: {
-                    noSurat: 'KL.206/07/IX/KSOP.BND-2026',
-                    tempat: 'BANDA NAIRA',
-                    tanggal: '09 SEPTEMBER 2026',
-                    namaPemohon: 'PT. TRANS PACIFIC MARINE',
-                    noPermohonan: 'TPM/BND/2026/09-02',
-                    perihalPermohonan: 'Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya',
-                    namaKapal: 'SPOB TRANS PACIFIC',
-                    jenisKapal: 'SPOB',
-                    gt: '175 GT',
-                    loa: '33,40 M',
-                    nahkoda: 'DAUD KAREL',
-                    agenKapal: 'PT. TRANS PACIFIC MARINE',
-                    rincian: 'Untuk melakukan pembongkaran BBM jenis Solar sebanyak 140 TON',
-                    tglMulai: '09 September 2026',
-                    kepalaKantor: 'RUSLI MAHMUD, S.T.',
-                    nip: '19690620 199903 1 001'
-                }
-            },
-            {
-                id: 'KSOP-SEED-08',
-                savedAt: '10 Sep 2026 10:15',
-                noSurat: 'KL.206/08/IX/KSOP.BND-2026',
-                namaKapal: 'KM. BANDA RAYA',
-                agenKapal: 'PT. NUSA INA LINES',
-                rincian: 'Untuk melakukan pemuatan BBM jenis Pertalite sebanyak 40 TON',
-                fileUrl: null,
-                source: 'cloud',
-                form: {
-                    noSurat: 'KL.206/08/IX/KSOP.BND-2026',
-                    tempat: 'BANDA NAIRA',
-                    tanggal: '10 SEPTEMBER 2026',
-                    namaPemohon: 'PT. NUSA INA LINES',
-                    noPermohonan: 'NIL/SPP-BM/09/2026',
-                    perihalPermohonan: 'Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya',
-                    namaKapal: 'KM. BANDA RAYA',
-                    jenisKapal: 'KM',
-                    gt: '140 GT',
-                    loa: '29,80 M',
-                    nahkoda: 'RUSLAN HIDAYAT',
-                    agenKapal: 'PT. NUSA INA LINES',
-                    rincian: 'Untuk melakukan pemuatan BBM jenis Pertalite sebanyak 40 TON',
-                    tglMulai: '10 September 2026',
-                    kepalaKantor: 'RUSLI MAHMUD, S.T.',
-                    nip: '19690620 199903 1 001'
-                }
-            },
-            {
-                id: 'KSOP-SEED-09',
-                savedAt: '11 Sep 2026 13:50',
-                noSurat: 'KL.206/09/IX/KSOP.BND-2026',
-                namaKapal: 'MT. TIRTA SAMUDRA',
-                agenKapal: 'PT. TIRTA SAMUDRA LOGISTIK',
-                rincian: 'Untuk melakukan pembongkaran BBM jenis LPG Curah sebanyak 50 TON',
-                fileUrl: null,
-                source: 'cloud',
-                form: {
-                    noSurat: 'KL.206/09/IX/KSOP.BND-2026',
-                    tempat: 'BANDA NAIRA',
-                    tanggal: '11 SEPTEMBER 2026',
-                    namaPemohon: 'PT. TIRTA SAMUDRA LOGISTIK',
-                    noPermohonan: 'TSL/BND/IX/2026/05',
-                    perihalPermohonan: 'Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya',
-                    namaKapal: 'MT. TIRTA SAMUDRA',
-                    jenisKapal: 'MT',
-                    gt: '220 GT',
-                    loa: '39,15 M',
-                    nahkoda: 'AGUS SALIM',
-                    agenKapal: 'PT. TIRTA SAMUDRA LOGISTIK',
-                    rincian: 'Untuk melakukan pembongkaran BBM jenis LPG Curah sebanyak 50 TON',
-                    tglMulai: '11 September 2026',
-                    kepalaKantor: 'RUSLI MAHMUD, S.T.',
-                    nip: '19690620 199903 1 001'
-                }
-            },
-            {
-                id: 'KSOP-SEED-10',
-                savedAt: '12 Sep 2026 16:30',
-                noSurat: 'KL.206/10/IX/KSOP.BND-2026',
-                namaKapal: 'SPOB MALUKU ENERGI',
-                agenKapal: 'PT. MALUKU TRANS ENERGI',
-                rincian: 'Untuk melakukan pembongkaran BBM jenis Biosolar sebanyak 160 TON',
-                fileUrl: null,
-                source: 'cloud',
-                form: {
-                    noSurat: 'KL.206/10/IX/KSOP.BND-2026',
-                    tempat: 'BANDA NAIRA',
-                    tanggal: '12 SEPTEMBER 2026',
-                    namaPemohon: 'PT. MALUKU TRANS ENERGI',
-                    noPermohonan: 'MTE/BM-09/2026/011',
-                    perihalPermohonan: 'Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya',
-                    namaKapal: 'SPOB MALUKU ENERGI',
-                    jenisKapal: 'SPOB',
-                    gt: '205 GT',
-                    loa: '37,00 M',
-                    nahkoda: 'ZULKIFLI LESTALUHU',
-                    agenKapal: 'PT. MALUKU TRANS ENERGI',
-                    rincian: 'Untuk melakukan pembongkaran BBM jenis Biosolar sebanyak 160 TON',
-                    tglMulai: '12 September 2026',
-                    kepalaKantor: 'RUSLI MAHMUD, S.T.',
-                    nip: '19690620 199903 1 001'
-                }
-            }
-        ];
-
         const initialForm = {
             noSurat: 'KL.206/11/IX/KSOP.BND-2026',
             tempat: 'BANDA NAIRA',
@@ -1754,6 +1463,30 @@
                 const bulanRomawi = ref('IX');
                 const tahunSurat = ref('2026');
                 const zoomLevel = ref(100);
+
+                // Pengaturan Posisi Tanda Tangan ke Bawah (Default: 3mm & Ruang TTD: 42pt agar pas 1 lembar A4 & NIP utuh)
+                const savedMargin = parseInt(localStorage.getItem('ksop_ttd_margin_top'), 10);
+                const initialMargin = (!isNaN(savedMargin) && savedMargin >= 0 && savedMargin <= 8) ? savedMargin : 3;
+                const ttdMarginTop = ref(initialMargin);
+
+                const savedSpace = parseInt(localStorage.getItem('ksop_ttd_space_height'), 10);
+                const initialSpace = (!isNaN(savedSpace) && savedSpace >= 35 && savedSpace <= 48) ? savedSpace : 42;
+                const ttdSpaceHeight = ref(initialSpace);
+
+                const saveTtdSettings = () => {
+                    try {
+                        localStorage.setItem('ksop_ttd_margin_top', String(ttdMarginTop.value));
+                        localStorage.setItem('ksop_ttd_space_height', String(ttdSpaceHeight.value));
+                    } catch(e) {}
+                };
+
+                // Pastikan nilai tersimpan langsung aman dan NIP tidak terpotong
+                saveTtdSettings();
+
+                const setTtdMargin = (val) => {
+                    ttdMarginTop.value = val;
+                    saveTtdSettings();
+                };
 
                 // --- DUKUNGAN RESPONSIVE HP & MODAL AKSES ---
                 const mobileTab = ref('form');
@@ -1832,34 +1565,23 @@
                         if (cached) {
                             const arr = JSON.parse(cached);
                             if (Array.isArray(arr)) {
-                                historyArr = arr;
+                                // Bersihkan sisa data contoh KSOP-SEED-* jika sebelumnya pernah tersimpan di browser
+                                historyArr = arr.filter(item => item && item.id && !item.id.toString().startsWith('KSOP-SEED-'));
                             }
                         }
-
-                        // Jika riwayat masih kurang dari 10 data contoh,
-                        // lengkapi dengan 10 data benih resmi KSOP Banda Naira agar pengguna memiliki setidaknya 10 riwayat
-                        if (historyArr.length < defaultHistorySeeds.length) {
-                            const existingNos = new Set(historyArr.map(item => (item.noSurat || '').trim()));
-                            const seedsToAdd = defaultHistorySeeds.filter(seed => !existingNos.has(seed.noSurat.trim()));
-                            historyArr = [...historyArr, ...seedsToAdd];
-                            localStorage.setItem('ksop_online_history_cache', JSON.stringify(historyArr));
-                        }
-
+                        localStorage.setItem('ksop_online_history_cache', JSON.stringify(historyArr));
                         return historyArr;
                     } catch(e) {
-                        return JSON.parse(JSON.stringify(defaultHistorySeeds));
+                        return [];
                     }
                 };
 
-                const resetHistoryToDefaultSeeds = () => {
-                    if (confirm('Muat ulang 10 riwayat contoh standar KSOP Banda Naira? Riwayat buatan sendiri yang bernomor lain akan tetap tersimpan.')) {
-                        const existing = getCachedHistory();
-                        const existingNos = new Set(existing.map(item => (item.noSurat || '').trim()));
-                        const missingSeeds = defaultHistorySeeds.filter(seed => !existingNos.has(seed.noSurat.trim()));
-                        const updated = [...defaultHistorySeeds, ...existing.filter(item => !defaultHistorySeeds.some(s => s.noSurat === item.noSurat))];
-                        cloudHistoryList.value = updated;
-                        localStorage.setItem('ksop_online_history_cache', JSON.stringify(updated));
-                        alert('✓ Riwayat contoh standar KSOP Banda Naira berhasil dimuat ulang (total ' + updated.length + ' surat).');
+                const clearLocalHistory = () => {
+                    if (confirm('Kosongkan semua daftar riwayat cetak lokal pada perangkat ini?')) {
+                        cloudHistoryList.value = [];
+                        try {
+                            localStorage.setItem('ksop_online_history_cache', JSON.stringify([]));
+                        } catch(e) {}
                     }
                 };
 
@@ -2062,12 +1784,11 @@
                         }
 
                         if (json && json.status === 'success' && Array.isArray(json.data)) {
-                            // Jika ada data dari Google Sheets, padukan dengan data lokal
-                            if (json.data.length > 0) {
-                                const cloudNos = new Set(json.data.map(d => (d.noSurat || '').trim()));
-                                const pending = (cloudHistoryList.value || []).filter(item => item.noSurat && !cloudNos.has(item.noSurat.trim()));
-                                cloudHistoryList.value = [...json.data, ...pending];
-                            }
+                            // Filter data agar data contoh awal (KSOP-SEED-*) tidak ikut ditampilkan
+                            const validCloudData = json.data.filter(d => !d.id || !d.id.toString().startsWith('KSOP-SEED-'));
+                            const cloudNos = new Set(validCloudData.map(d => (d.noSurat || '').trim()));
+                            const pending = (cloudHistoryList.value || []).filter(item => item && item.noSurat && !item.id?.toString().startsWith('KSOP-SEED-') && !cloudNos.has(item.noSurat.trim()));
+                            cloudHistoryList.value = [...validCloudData, ...pending];
                             lastCloudSyncTime.value = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
                             try {
                                 localStorage.setItem('ksop_online_history_cache', JSON.stringify(cloudHistoryList.value));
@@ -2401,16 +2122,6 @@ function getOrCreateHistorySheet(rootFolder) {
     headerRange.setBackground("#1e3a8a");
     headerRange.setFontColor("#ffffff");
     sheet.setFrozenRows(1);
-
-    var initialSeeds = getInitialSeedRows();
-    for (var s = 0; s < initialSeeds.length; s++) {
-      sheet.appendRow(initialSeeds[s]);
-    }
-  } else if (sheet.getLastRow() === 1) {
-    var initialSeeds = getInitialSeedRows();
-    for (var s = 0; s < initialSeeds.length; s++) {
-      sheet.appendRow(initialSeeds[s]);
-    }
   }
   return sheet;
 }
@@ -2479,6 +2190,7 @@ function getHistoryFromSpreadsheet(rootFolder, limit) {
     var results = [];
     for (var i = values.length - 1; i >= 0; i--) {
       var r = values[i];
+      if (r[0] && r[0].toString().indexOf("KSOP-SEED-") === 0) continue;
       var parsedForm = {};
       try {
         parsedForm = r[13] ? JSON.parse(r[13]) : {};
@@ -2532,28 +2244,6 @@ function getOrCreateFolder(parentFolder, folderName) {
 
 function createJsonResponse(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
-}
-
-function getInitialSeedRows() {
-  var seeds = [
-    { no: "KL.206/01/IX/KSOP.BND-2026", date: "03 Sep 2026 09:15", tglSurat: "03 SEPTEMBER 2026", kapal: "SPOB AQSHA DEWA", jenis: "SPOB", gt: "185 GT", nahkoda: "EDUARD WATTILETE", agen: "PT. SPECTRA TIRTASEGARA LINE", noPerm: "SPPPB / 1 / IX / PSTSL.2026", rincian: "Untuk melakukan pembongkaran BBM jenis Pertamax sebanyak 120 TON" },
-    { no: "KL.206/02/IX/KSOP.BND-2026", date: "04 Sep 2026 10:30", tglSurat: "04 SEPTEMBER 2026", kapal: "SPOB PATRIOT NUSANTARA", jenis: "SPOB", gt: "210 GT", nahkoda: "M. HUSSEIN", agen: "PT. PELAYARAN BANDA SAMUDERA", noPerm: "PBS/BM/09/2026", rincian: "Untuk melakukan pembongkaran BBM jenis Solar / Biosolar sebanyak 180 TON" },
-    { no: "KL.206/03/IX/KSOP.BND-2026", date: "05 Sep 2026 14:20", tglSurat: "05 SEPTEMBER 2026", kapal: "MT. PANDU PERSADA", jenis: "MT", gt: "245 GT", nahkoda: "HENDRA WIJAYA", agen: "PT. SAMUDRA JAYA ENERGI", noPerm: "014/SJE-BND/IX/2026", rincian: "Untuk melakukan pembongkaran BBM jenis Pertalite sebanyak 150 TON" },
-    { no: "KL.206/04/IX/KSOP.BND-2026", date: "06 Sep 2026 11:45", tglSurat: "06 SEPTEMBER 2026", kapal: "KM. BANDA SEJAHTERA", jenis: "KM", gt: "160 GT", nahkoda: "LA ODE RAHMAN", agen: "PT. BANDA RAYA LINES", noPerm: "BRL/BND/045/IX/2026", rincian: "Untuk melakukan pemuatan BBM jenis Minyak Tanah sebanyak 90 TON" },
-    { no: "KL.206/05/IX/KSOP.BND-2026", date: "07 Sep 2026 13:10", tglSurat: "07 SEPTEMBER 2026", kapal: "SPOB ALKEN PESONA", jenis: "SPOB", gt: "195 GT", nahkoda: "YOHANIS RUMAHORBO", agen: "PT. ALKEN BERINGIN SEJAHTERA", noPerm: "ABS/088/SP-BM/IX/2026", rincian: "Untuk melakukan pembongkaran BBM jenis Dexlite sebanyak 80 TON" },
-    { no: "KL.206/06/IX/KSOP.BND-2026", date: "08 Sep 2026 15:40", tglSurat: "08 SEPTEMBER 2026", kapal: "MT. SAMUDRA BINA", jenis: "MT", gt: "280 GT", nahkoda: "BAMBANG SUTRISNO", agen: "PT. BAHARI NUSANTARA GEMILANG", noPerm: "BNG/NAIRA/IX/021/2026", rincian: "Untuk melakukan pembongkaran BBM jenis Pertamax sebanyak 200 TON" },
-    { no: "KL.206/07/IX/KSOP.BND-2026", date: "09 Sep 2026 09:25", tglSurat: "09 SEPTEMBER 2026", kapal: "SPOB TRANS PACIFIC", jenis: "SPOB", gt: "175 GT", nahkoda: "DAUD KAREL", agen: "PT. TRANS PACIFIC MARINE", noPerm: "TPM/BND/2026/09-02", rincian: "Untuk melakukan pembongkaran BBM jenis Solar sebanyak 140 TON" },
-    { no: "KL.206/08/IX/KSOP.BND-2026", date: "10 Sep 2026 10:15", tglSurat: "10 SEPTEMBER 2026", kapal: "KM. BANDA RAYA", jenis: "KM", gt: "140 GT", nahkoda: "RUSLAN HIDAYAT", agen: "PT. NUSA INA LINES", noPerm: "NIL/SPP-BM/09/2026", rincian: "Untuk melakukan pemuatan BBM jenis Pertalite sebanyak 40 TON" },
-    { no: "KL.206/09/IX/KSOP.BND-2026", date: "11 Sep 2026 13:50", tglSurat: "11 SEPTEMBER 2026", kapal: "MT. TIRTA SAMUDRA", jenis: "MT", gt: "220 GT", nahkoda: "AGUS SALIM", agen: "PT. TIRTA SAMUDRA LOGISTIK", noPerm: "TSL/BND/IX/2026/05", rincian: "Untuk melakukan pembongkaran BBM jenis LPG Curah sebanyak 50 TON" },
-    { no: "KL.206/10/IX/KSOP.BND-2026", date: "12 Sep 2026 16:30", tglSurat: "12 SEPTEMBER 2026", kapal: "SPOB MALUKU ENERGI", jenis: "SPOB", gt: "205 GT", nahkoda: "ZULKIFLI LESTALUHU", agen: "PT. MALUKU TRANS ENERGI", noPerm: "MTE/BM-09/2026/011", rincian: "Untuk melakukan pembongkaran BBM jenis Biosolar sebanyak 160 TON" }
-  ];
-  var rows = [];
-  for (var i = 0; i < seeds.length; i++) {
-    var s = seeds[i];
-    var formObj = { noSurat: s.no, tempat: "BANDA NAIRA", tanggal: s.tglSurat, namaPemohon: s.agen, noPermohonan: s.noPerm, perihalPermohonan: "Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya", namaKapal: s.kapal, jenisKapal: s.jenis, gt: s.gt, loa: "-", nahkoda: s.nahkoda, agenKapal: s.agen, rincian: s.rincian, tglMulai: s.tglSurat, kepalaKantor: "RUSLI MAHMUD, S.T.", nip: "19690620 199903 1 001" };
-    rows.push(["KSOP-SEED-" + (i + 1 < 10 ? "0" + (i + 1) : (i + 1)), s.date, s.no, s.kapal, s.jenis, s.gt, s.nahkoda, s.agen, s.rincian, "RUSLI MAHMUD, S.T.", "19690620 199903 1 001", s.tglSurat, "-", JSON.stringify(formObj)]);
-  }
-  return rows;
 }`;
 
                 const copyAppsScriptCode = () => {
@@ -2826,10 +2516,6 @@ function getInitialSeedRows() {
                 const printDoc = () => {
                     // Jika di HP, otomatis alihkan ke tab pratinjau surat sebelum mencetak
                     mobileTab.value = 'preview';
-                    const isMobile = window.innerWidth < 768 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                    if (isMobile) {
-                        document.body.classList.add('mobile-print-fit');
-                    }
 
                     // Samakan nama berkas saat Cetak/Save as PDF dengan nama file Google Drive
                     const docFileName = getDocumentFileName(false);
@@ -2883,7 +2569,6 @@ function getInitialSeedRows() {
                         window.print();
                         setTimeout(() => {
                             zoomLevel.value = prevZoom;
-                            document.body.classList.remove('mobile-print-fit');
                             setTimeout(() => {
                                 document.title = defaultAppTitle;
                             }, 1000);
@@ -2948,12 +2633,16 @@ function getInitialSeedRows() {
                     applyPresetFromManager,
                     deletePreset,
                     resetPresetsToDefault,
-                    resetHistoryToDefaultSeeds,
+                    clearLocalHistory,
                     saveToHistory,
                     loadFromHistory: loadFromHistoryItem,
                     deleteHistory: deleteHistoryItem,
                     resetForm,
                     printDoc,
+                    ttdMarginTop,
+                    ttdSpaceHeight,
+                    saveTtdSettings,
+                    setTtdMargin,
                     // Google Drive integration
                     gdriveWebhookUrl,
                     gdriveRootFolder,

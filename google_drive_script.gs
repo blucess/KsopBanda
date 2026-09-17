@@ -210,18 +210,6 @@ function getOrCreateHistorySheet(rootFolder) {
     headerRange.setBackground("#1e3a8a"); // Navy Blue KSOP
     headerRange.setFontColor("#ffffff");
     sheet.setFrozenRows(1);
-
-    // Otomatis masukkan 10 data register contoh awal KSOP Banda Naira
-    var initialSeeds = getInitialSeedRows();
-    for (var s = 0; s < initialSeeds.length; s++) {
-      sheet.appendRow(initialSeeds[s]);
-    }
-  } else if (sheet.getLastRow() === 1) {
-    // Jika hanya ada baris header tanpa ada baris data
-    var initialSeeds = getInitialSeedRows();
-    for (var s = 0; s < initialSeeds.length; s++) {
-      sheet.appendRow(initialSeeds[s]);
-    }
   }
   return sheet;
 }
@@ -297,6 +285,10 @@ function getHistoryFromSpreadsheet(rootFolder, limit) {
     var results = [];
     for (var i = values.length - 1; i >= 0; i--) {
       var r = values[i];
+      // Abaikan data contoh awal jika ada
+      if (r[0] && r[0].toString().indexOf("KSOP-SEED-") === 0) {
+        continue;
+      }
       var parsedForm = {};
       try {
         parsedForm = r[13] ? JSON.parse(r[13]) : {};
@@ -373,59 +365,3 @@ function createJsonResponse(data) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// 10 Data Register Surat Contoh Resmi KSOP Banda Naira
-function getInitialSeedRows() {
-  var seeds = [
-    { no: "KL.206/01/IX/KSOP.BND-2026", date: "03 Sep 2026 09:15", tglSurat: "03 SEPTEMBER 2026", kapal: "SPOB AQSHA DEWA", jenis: "SPOB", gt: "185 GT", nahkoda: "EDUARD WATTILETE", agen: "PT. SPECTRA TIRTASEGARA LINE", noPerm: "SPPPB / 1 / IX / PSTSL.2026", rincian: "Untuk melakukan pembongkaran BBM jenis Pertamax sebanyak 120 TON" },
-    { no: "KL.206/02/IX/KSOP.BND-2026", date: "04 Sep 2026 10:30", tglSurat: "04 SEPTEMBER 2026", kapal: "SPOB PATRIOT NUSANTARA", jenis: "SPOB", gt: "210 GT", nahkoda: "M. HUSSEIN", agen: "PT. PELAYARAN BANDA SAMUDERA", noPerm: "PBS/BM/09/2026", rincian: "Untuk melakukan pembongkaran BBM jenis Solar / Biosolar sebanyak 180 TON" },
-    { no: "KL.206/03/IX/KSOP.BND-2026", date: "05 Sep 2026 14:20", tglSurat: "05 SEPTEMBER 2026", kapal: "MT. PANDU PERSADA", jenis: "MT", gt: "245 GT", nahkoda: "HENDRA WIJAYA", agen: "PT. SAMUDRA JAYA ENERGI", noPerm: "014/SJE-BND/IX/2026", rincian: "Untuk melakukan pembongkaran BBM jenis Pertalite sebanyak 150 TON" },
-    { no: "KL.206/04/IX/KSOP.BND-2026", date: "06 Sep 2026 11:45", tglSurat: "06 SEPTEMBER 2026", kapal: "KM. BANDA SEJAHTERA", jenis: "KM", gt: "160 GT", nahkoda: "LA ODE RAHMAN", agen: "PT. BANDA RAYA LINES", noPerm: "BRL/BND/045/IX/2026", rincian: "Untuk melakukan pemuatan BBM jenis Minyak Tanah sebanyak 90 TON" },
-    { no: "KL.206/05/IX/KSOP.BND-2026", date: "07 Sep 2026 13:10", tglSurat: "07 SEPTEMBER 2026", kapal: "SPOB ALKEN PESONA", jenis: "SPOB", gt: "195 GT", nahkoda: "YOHANIS RUMAHORBO", agen: "PT. ALKEN BERINGIN SEJAHTERA", noPerm: "ABS/088/SP-BM/IX/2026", rincian: "Untuk melakukan pembongkaran BBM jenis Dexlite sebanyak 80 TON" },
-    { no: "KL.206/06/IX/KSOP.BND-2026", date: "08 Sep 2026 15:40", tglSurat: "08 SEPTEMBER 2026", kapal: "MT. SAMUDRA BINA", jenis: "MT", gt: "280 GT", nahkoda: "BAMBANG SUTRISNO", agen: "PT. BAHARI NUSANTARA GEMILANG", noPerm: "BNG/NAIRA/IX/021/2026", rincian: "Untuk melakukan pembongkaran BBM jenis Pertamax sebanyak 200 TON" },
-    { no: "KL.206/07/IX/KSOP.BND-2026", date: "09 Sep 2026 09:25", tglSurat: "09 SEPTEMBER 2026", kapal: "SPOB TRANS PACIFIC", jenis: "SPOB", gt: "175 GT", nahkoda: "DAUD KAREL", agen: "PT. TRANS PACIFIC MARINE", noPerm: "TPM/BND/2026/09-02", rincian: "Untuk melakukan pembongkaran BBM jenis Solar sebanyak 140 TON" },
-    { no: "KL.206/08/IX/KSOP.BND-2026", date: "10 Sep 2026 10:15", tglSurat: "10 SEPTEMBER 2026", kapal: "KM. BANDA RAYA", jenis: "KM", gt: "140 GT", nahkoda: "RUSLAN HIDAYAT", agen: "PT. NUSA INA LINES", noPerm: "NIL/SPP-BM/09/2026", rincian: "Untuk melakukan pemuatan BBM jenis Pertalite sebanyak 40 TON" },
-    { no: "KL.206/09/IX/KSOP.BND-2026", date: "11 Sep 2026 13:50", tglSurat: "11 SEPTEMBER 2026", kapal: "MT. TIRTA SAMUDRA", jenis: "MT", gt: "220 GT", nahkoda: "AGUS SALIM", agen: "PT. TIRTA SAMUDRA LOGISTIK", noPerm: "TSL/BND/IX/2026/05", rincian: "Untuk melakukan pembongkaran BBM jenis LPG Curah sebanyak 50 TON" },
-    { no: "KL.206/10/IX/KSOP.BND-2026", date: "12 Sep 2026 16:30", tglSurat: "12 SEPTEMBER 2026", kapal: "SPOB MALUKU ENERGI", jenis: "SPOB", gt: "205 GT", nahkoda: "ZULKIFLI LESTALUHU", agen: "PT. MALUKU TRANS ENERGI", noPerm: "MTE/BM-09/2026/011", rincian: "Untuk melakukan pembongkaran BBM jenis Biosolar sebanyak 160 TON" }
-  ];
-
-  var rows = [];
-  for (var i = 0; i < seeds.length; i++) {
-    var s = seeds[i];
-    var formObj = {
-      noSurat: s.no,
-      tempat: "BANDA NAIRA",
-      tanggal: s.tglSurat,
-      namaPemohon: s.agen,
-      noPermohonan: s.noPerm,
-      perihalPermohonan: "Surat Pemberitahuan Persetujuan Bongkar / Muat Barang Berbahaya",
-      namaKapal: s.kapal,
-      jenisKapal: s.jenis,
-      gt: s.gt,
-      loa: "-",
-      nahkoda: s.nahkoda,
-      agenKapal: s.agen,
-      rincian: s.rincian,
-      tglMulai: s.tglSurat,
-      kepalaKantor: "RUSLI MAHMUD, S.T.",
-      nip: "19690620 199903 1 001"
-    };
-
-    rows.push([
-      "KSOP-SEED-" + (i + 1 < 10 ? "0" + (i + 1) : (i + 1)),
-      s.date,
-      s.no,
-      s.kapal,
-      s.jenis,
-      s.gt,
-      s.nahkoda,
-      s.agen,
-      s.rincian,
-      "RUSLI MAHMUD, S.T.",
-      "19690620 199903 1 001",
-      s.tglSurat,
-      "-",
-      JSON.stringify(formObj)
-    ]);
-  }
-  return rows;
-}

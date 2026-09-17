@@ -215,7 +215,7 @@ xmlns="http://www.w3.org/TR/REC-html40">
 </table>
 
 <!-- BAGIAN TANDA TANGAN (LEGA UNTUK TANDA TANGAN & STEMPEL CAP RESMI) -->
-<table border=0 cellspacing=0 cellpadding=0 style='width: 100%; margin-top: 2pt;'>
+<table border=0 cellspacing=0 cellpadding=0 style='width: 100%; margin-top: 8pt;'>
  <tr>
   <td style='width: 42%;'></td>
   <td style='width: 58%;'>
@@ -240,8 +240,8 @@ xmlns="http://www.w3.org/TR/REC-html40">
         <span style='font-size: 11.0pt;'>OTORITAS PELABUHAN BANDA NAIRA</span>
       </p>
       
-      <!-- Ruang Tanda Tangan & Cap Stempel yang Sangat Cukup (6 Line Breaks = ~68pt / 2.5cm) -->
-      <div style='height: 68pt;'></div>
+      <!-- Ruang Tanda Tangan & Cap Stempel yang Cukup (42pt) -->
+      <div style='height: 42pt;'></div>
 
       <p class=MsoNormal align=center style='text-align: center;'>
         <b><u><span style='font-size: 12.0pt;'>RUSLI MAHMUD, S.T.</span></u></b>
